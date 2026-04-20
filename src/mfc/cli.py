@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pydantic import ValidationError
+
+from mfc.config import SourcesFile
 
 app = typer.Typer(
     name="mfc",
@@ -23,7 +26,21 @@ def validate_config(
     ] = DEFAULT_CONFIG,
 ) -> None:
     """Sanity-check the seed JSON against the SourceConfig schema."""
-    raise NotImplementedError("validate-config is not implemented yet")
+    try:
+        config = SourcesFile.load(path)
+    except FileNotFoundError:
+        typer.echo(f"error: config not found at {path}", err=True)
+        raise typer.Exit(code=2) from None
+    except ValidationError as err:
+        typer.echo(f"error: {path} failed schema validation", err=True)
+        typer.echo(str(err), err=True)
+        raise typer.Exit(code=1) from None
+
+    ifcn_count = sum(1 for s in config.sources if s.ifcn_signatory)
+    typer.echo(
+        f"ok: {path} — {len(config.sources)} sources ({ifcn_count} IFCN-certified), "
+        f"schema_version={config.schema_version}"
+    )
 
 
 @app.command()
