@@ -1,0 +1,237 @@
+{
+  "schema_version": "1.0",
+  "description": "Seed list of Malayalam-language fact-check sources for building a labelled corpus for fake-news classification. Every source listed either publishes in Malayalam or has a dedicated Malayalam section. Prefer ClaimReview JSON-LD extraction when available; fall back to CSS selectors.",
+  "canonical_labels": {
+    "false": ["false", "fake", "വ്യാജം", "വ്യാജമാണ്", "തെറ്റാണ്", "misleading claim", "incorrect"],
+    "misleading": ["misleading", "missing context", "partly false", "half-true", "തെറ്റിദ്ധരിപ്പിക്കുന്നത്"],
+    "partly_false": ["partly false", "partly true", "mixture"],
+    "true": ["true", "correct", "ശരിയാണ്", "സത്യം"],
+    "unverified": ["unverified", "unproven", "needs context"],
+    "satire": ["satire", "parody"]
+  },
+  "extraction_priority": [
+    "claimreview_jsonld",
+    "css_selectors",
+    "readability_fallback"
+  ],
+  "global_crawler_policy": {
+    "user_agent": "MalayalamFactCheckCorpusBot/1.0 (+contact: hello@stultus.in; research use)",
+    "default_delay_seconds": 3,
+    "respect_robots_txt": true,
+    "max_concurrent_per_host": 2,
+    "timeout_seconds": 30,
+    "retry_attempts": 3
+  },
+  "sources": [
+    {
+      "id": "factcrescendo_ml",
+      "name": "Fact Crescendo Malayalam",
+      "base_url": "https://malayalam.factcrescendo.com",
+      "language": "ml",
+      "ifcn_signatory": true,
+      "meta_partner": true,
+      "publisher_org": "Crescendo Transcription Pvt. Ltd.",
+      "discovery": {
+        "sitemap": "https://malayalam.factcrescendo.com/sitemap_index.xml",
+        "rss": "https://malayalam.factcrescendo.com/feed/",
+        "category_pages": ["https://malayalam.factcrescendo.com/category/fact-check/"]
+      },
+      "extraction": {
+        "claimreview_jsonld": true,
+        "selectors": {
+          "title": "h1.entry-title, h1.tdb-title-text",
+          "content": "div.td-post-content, article .entry-content",
+          "published_date": "time.entry-date, meta[property='article:published_time']",
+          "claim": ".claim-box, .claimreview-claim",
+          "verdict": ".rating-box, .claimreview-rating",
+          "author": ".td-post-author-name a, .author-name"
+        }
+      },
+      "notes": "Primary Malayalam fact-checker. Strong ClaimReview JSON-LD coverage."
+    },
+    {
+      "id": "newschecker_ml",
+      "name": "Newschecker Malayalam",
+      "base_url": "https://newschecker.in",
+      "malayalam_section": "https://newschecker.in/ml",
+      "language": "ml",
+      "ifcn_signatory": true,
+      "meta_partner": true,
+      "publisher_org": "NC Media Networks Pvt. Ltd.",
+      "discovery": {
+        "sitemap": "https://newschecker.in/sitemap.xml",
+        "category_pages": [
+          "https://newschecker.in/ml/fact-check-ml",
+          "https://newschecker.in/ml"
+        ]
+      },
+      "extraction": {
+        "claimreview_jsonld": true,
+        "selectors": {
+          "title": "h1",
+          "content": "article, div.post-content, div.entry-content",
+          "published_date": "time, meta[property='article:published_time']",
+          "claim": ".claim, [data-claim], .fact-check-claim",
+          "verdict": ".fact, .rating, .fact-check-fact",
+          "author": ".author, .byline a"
+        }
+      },
+      "notes": "Filter by URL path containing /ml/ for Malayalam content. Non-Malayalam URLs may contain Malayalam fact checks translated to English."
+    },
+    {
+      "id": "factcrescendo_en_malayalam_tag",
+      "name": "Fact Crescendo (English, Kerala/Malayalam-relevant)",
+      "base_url": "https://english.factcrescendo.com",
+      "language": "en",
+      "ifcn_signatory": true,
+      "discovery": {
+        "sitemap": "https://english.factcrescendo.com/sitemap_index.xml",
+        "category_pages": ["https://english.factcrescendo.com/tag/kerala/"]
+      },
+      "extraction": {
+        "claimreview_jsonld": true,
+        "selectors": {
+          "title": "h1.entry-title",
+          "content": "div.td-post-content",
+          "published_date": "time.entry-date",
+          "claim": ".claim-box",
+          "verdict": ".rating-box"
+        }
+      },
+      "notes": "Supplementary. Use for cross-lingual pairs: same claim, Malayalam and English versions. Useful for translation-robust models."
+    },
+    {
+      "id": "newsmeter_ml",
+      "name": "NewsMeter Malayalam Fact Check",
+      "base_url": "https://newsmeter.in",
+      "malayalam_section": "https://newsmeter.in/fact-check-malayalam",
+      "language": "ml",
+      "ifcn_signatory": true,
+      "meta_partner": true,
+      "publisher_org": "NewsMeter",
+      "discovery": {
+        "sitemap": "https://newsmeter.in/sitemap.xml",
+        "category_pages": ["https://newsmeter.in/fact-check-malayalam"]
+      },
+      "extraction": {
+        "claimreview_jsonld": true,
+        "selectors": {
+          "title": "h1",
+          "content": "div.story-element, article",
+          "published_date": "time, meta[property='article:published_time']",
+          "claim": ".claim, .fact-check-claim",
+          "verdict": ".fact, .fact-check-verdict"
+        }
+      },
+      "notes": "Quintype-based CMS. Often exposes /api/v1/ endpoints for structured access - inspect before scraping HTML."
+    },
+    {
+      "id": "indiatoday_ml_afwa",
+      "name": "India Today AFWA / Malayalam Fact Check",
+      "base_url": "https://malayalam.indiatoday.in",
+      "malayalam_section": "https://malayalam.indiatoday.in/fact-check",
+      "language": "ml",
+      "ifcn_signatory": true,
+      "meta_partner": true,
+      "publisher_org": "TV Today Network Ltd.",
+      "discovery": {
+        "sitemap": "https://malayalam.indiatoday.in/sitemap.xml",
+        "category_pages": ["https://malayalam.indiatoday.in/fact-check"]
+      },
+      "extraction": {
+        "claimreview_jsonld": true,
+        "selectors": {
+          "title": "h1",
+          "content": "div.story-kicker, div.description, .story-body",
+          "published_date": "time, .update-time",
+          "claim": ".fact-check-claim, .story-claim",
+          "verdict": ".fact-check-verdict, .fact"
+        }
+      },
+      "notes": "AFWA = Anti Fake News War-room. Strong in election-cycle claims."
+    },
+    {
+      "id": "manorama_factcheck",
+      "name": "Manorama Online Fact Check",
+      "base_url": "https://www.manoramaonline.com",
+      "malayalam_section": "https://www.manoramaonline.com/topics/technology/factcheck.html",
+      "language": "ml",
+      "ifcn_signatory": false,
+      "publisher_org": "Malayala Manorama",
+      "discovery": {
+        "sitemap": "https://www.manoramaonline.com/sitemap.xml",
+        "category_pages": ["https://www.manoramaonline.com/topics/technology/factcheck.html"]
+      },
+      "extraction": {
+        "claimreview_jsonld": false,
+        "selectors": {
+          "title": "h1.article-heading, h1",
+          "content": "div.article-body, div.story-content",
+          "published_date": "time, .published-date",
+          "claim": null,
+          "verdict": null
+        }
+      },
+      "notes": "Not IFCN-certified. Verdict is usually embedded in prose - requires NLP extraction (e.g., Malayalam verdict keyword classifier). Treat as weakly-labelled source; cross-verify before inclusion in training set."
+    },
+    {
+      "id": "mathrubhumi_factcheck",
+      "name": "Mathrubhumi Fact Check",
+      "base_url": "https://www.mathrubhumi.com",
+      "malayalam_section": "https://www.mathrubhumi.com/fact-check",
+      "language": "ml",
+      "ifcn_signatory": false,
+      "publisher_org": "The Mathrubhumi Printing & Publishing Co. Ltd.",
+      "discovery": {
+        "sitemap": "https://www.mathrubhumi.com/sitemap.xml",
+        "category_pages": ["https://www.mathrubhumi.com/fact-check"]
+      },
+      "extraction": {
+        "claimreview_jsonld": false,
+        "selectors": {
+          "title": "h1",
+          "content": "div.article-body, div.story-content, article",
+          "published_date": "time, meta[property='article:published_time']",
+          "claim": null,
+          "verdict": null
+        }
+      },
+      "notes": "Verify section exists and is active before crawling; URL may shift. Not IFCN-certified. Verdict extraction requires NLP on Malayalam text."
+    },
+    {
+      "id": "pib_factcheck",
+      "name": "PIB Fact Check (Govt of India)",
+      "base_url": "https://pib.gov.in",
+      "malayalam_section": "https://pib.gov.in/factcheck.aspx",
+      "language": "multi",
+      "ifcn_signatory": false,
+      "publisher_org": "Press Information Bureau, Government of India",
+      "discovery": {
+        "sitemap": null,
+        "category_pages": ["https://pib.gov.in/factcheck.aspx"]
+      },
+      "extraction": {
+        "claimreview_jsonld": false,
+        "selectors": {
+          "title": "h2, h1",
+          "content": "div.innner-page-main-about-us-content-right-part",
+          "published_date": ".publishdate",
+          "claim": null,
+          "verdict": null
+        }
+      },
+      "notes": "Government source - useful for claims about government policy/schemes. Multi-language but filterable. Partisan-bias caveat: only government-negative claims get flagged; missing class coverage. Use with label_source='government' flag downstream."
+    }
+  ],
+  "label_ambiguity_notes": [
+    "IFCN signatories (factcrescendo_ml, newschecker_ml, newsmeter_ml, indiatoday_ml_afwa) are the primary gold-labelled sources - start corpus here.",
+    "Manorama and Mathrubhumi are useful for volume but require NLP-based verdict extraction and manual spot-checks.",
+    "PIB has ideological skew - do not train alone; use as augmentation with source-ID as a feature.",
+    "For each article, extract: (claim_text, verdict_label, evidence_text, source_id, url, published_date, language). The (claim_text, verdict_label) pair is the minimum training unit."
+  ],
+  "recommended_negative_class_sourcing": [
+    "Use the 'evidence_text' and the 'corrected/true version' in each fact-check article as the TRUE class.",
+    "Use the 'claim_text' (the viral message being debunked) as the FALSE class.",
+    "This gives you balanced pairs from a single article and controls for topic/domain."
+  ]
+}
