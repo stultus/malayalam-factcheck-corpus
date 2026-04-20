@@ -141,3 +141,16 @@ cython_debug/
 CLAUDE.md
 .claude/
 .claudeignore
+
+# Project data (stage outputs; regenerable from config + crawl)
+data/raw/
+data/interim/
+data/processed/
+
+# uv
+.venv/
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
