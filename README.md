@@ -83,6 +83,17 @@ data/                                      # gitignored; pipeline outputs
 
 Corpus only. Model training, evaluation, labelling UI, and production APIs live in separate repos and consume the Parquet output of this one.
 
+## Legal and ethics
+
+Building a corpus from third-party fact-check articles has copyright, data-protection, and defamation implications. Read [LEGAL.md](LEGAL.md) before publishing anything derived from this pipeline. In short:
+
+- Local research use is squarely inside Indian fair dealing.
+- Public release of `evidence_text` (full debunking prose) requires written permission from each source publisher.
+- IFCN signatories are usually receptive to research requests — ask first.
+- A re-fetch-from-URL release pattern is far safer than shipping article bodies.
+
+If you are a rights holder, publisher, or named individual and want content removed, see [TAKEDOWN.md](TAKEDOWN.md).
+
 ## License
 
-See [LICENSE](LICENSE).
+[LICENSE](LICENSE) (MIT) covers the **pipeline code only**. Any released corpus is a separate work — see [LEGAL.md](LEGAL.md) for the recommended corpus license posture.

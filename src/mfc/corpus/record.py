@@ -1,4 +1,9 @@
-"""Canonical record for one fact-check article."""
+"""Canonical record for one fact-check article.
+
+Redistribution note: ``evidence_text`` holds the publisher's full debunking
+prose and is the highest-risk field in any public release. The packaging
+stage must excerpt or strip it for publishable corpus tiers. See LEGAL.md.
+"""
 
 from __future__ import annotations
 
