@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import os
 import tempfile
+from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
@@ -19,10 +21,10 @@ from typing import Literal
 import polars as pl
 from pydantic import BaseModel, ConfigDict
 
-from mfc.corpus.record import VerdictCanonical
+from mfc.corpus.record import FactCheckRecord, VerdictCanonical
 from mfc.paths import MANUAL_LABELS_PATH, ensure_dir
 
-ManualVerdict = VerdictCanonical | Literal["needs_review"]
+ManualVerdict = VerdictCanonical | Literal["needs_review", "not_fact_check"]
 
 
 class ManualLabel(BaseModel):
@@ -42,6 +44,51 @@ _SCHEMA: dict[str, type[pl.DataType]] = {
     "labelled_at": pl.Utf8,
     "labeller": pl.Utf8,
 }
+
+
+@dataclass
+class MergeSummary:
+    """Counts of label effects applied to a record list."""
+
+    overridden: int = 0
+    rejected: int = 0
+
+
+def apply_labels(
+    records: Iterable[FactCheckRecord],
+    labels: dict[str, ManualLabel],
+) -> tuple[list[FactCheckRecord], MergeSummary]:
+    """Join manual labels into records and report how many were affected.
+
+    - `not_fact_check`: drop the record entirely (publisher mistagged a
+      generic article into the fact-check section).
+    - `needs_review`: sidecar-only flag, the auto verdict is preserved.
+    - any canonical verdict: override `verdict_canonical` and tag
+      `label_source = "manual"`.
+    """
+    summary = MergeSummary()
+    out: list[FactCheckRecord] = []
+    for record in records:
+        label = labels.get(record.record_id)
+        if label is None:
+            out.append(record)
+            continue
+        if label.verdict == "not_fact_check":
+            summary.rejected += 1
+            continue
+        if label.verdict == "needs_review":
+            out.append(record)
+            continue
+        out.append(
+            record.model_copy(
+                update={
+                    "verdict_canonical": label.verdict,
+                    "label_source": "manual",
+                }
+            )
+        )
+        summary.overridden += 1
+    return out, summary
 
 
 class LabelStore:

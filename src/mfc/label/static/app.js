@@ -29,6 +29,7 @@ const KEY_TO_VERDICT = {
   5: "unverified",
   6: "satire",
   7: "needs_review",
+  8: "not_fact_check",
   0: "__delete__",
 };
 

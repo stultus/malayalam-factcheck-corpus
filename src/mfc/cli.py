@@ -409,7 +409,7 @@ def package(
     ] = DEFAULT_SNIPPET_CHARS,
 ) -> None:
     """Stage 6: validate records and write Parquet (deduped output by default)."""
-    from mfc.label.store import LabelStore
+    from mfc.label.store import LabelStore, apply_labels
 
     if tier not in {"internal", "publishable"}:
         typer.echo(f"error: --tier must be 'internal' or 'publishable', got {tier!r}", err=True)
@@ -432,26 +432,9 @@ def package(
                 all_records.append(FactCheckRecord.model_validate(row))
 
     manual_labels = LabelStore().all()
-    overridden = 0
-    if manual_labels:
-        merged: list[FactCheckRecord] = []
-        for record in all_records:
-            label = manual_labels.get(record.record_id)
-            # needs_review is a sidecar-only flag; it does not map to any
-            # canonical verdict and so cannot override the auto verdict.
-            if label is None or label.verdict == "needs_review":
-                merged.append(record)
-                continue
-            merged.append(
-                record.model_copy(
-                    update={
-                        "verdict_canonical": label.verdict,
-                        "label_source": "manual",
-                    }
-                )
-            )
-            overridden += 1
-        all_records = merged
+    all_records, merge_summary = apply_labels(all_records, manual_labels)
+    overridden = merge_summary.overridden
+    rejected = merge_summary.rejected
 
     if tier == "publishable":
         all_records, summary = prepare_publishable(all_records, config, snippet_chars=snippet_chars)
@@ -474,10 +457,13 @@ def package(
 
     out = PROCESSED_ROOT / f"corpus_v{version}.parquet"
     written = write_parquet(all_records, out)
-    typer.echo(
-        f"package: {written} rows -> {out}"
-        + (f" ({overridden} manual overrides)" if overridden else "")
-    )
+    extras: list[str] = []
+    if overridden:
+        extras.append(f"{overridden} manual overrides")
+    if rejected:
+        extras.append(f"{rejected} dropped as not_fact_check")
+    suffix = f" ({'; '.join(extras)})" if extras else ""
+    typer.echo(f"package: {written} rows -> {out}{suffix}")
 
 
 @app.command()

@@ -12,6 +12,7 @@
   --unverified: #6b7280;
   --satire: #7c3aed;
   --review: #0e7490;
+  --not-fc: #b91c1c;
   --clear: #4b5563;
 }
 
@@ -210,6 +211,7 @@ main.card {
 .verdicts .v-unverified { border-color: var(--unverified); color: var(--unverified); }
 .verdicts .v-satire     { border-color: var(--satire); color: var(--satire); }
 .verdicts .v-review     { border-color: var(--review); color: var(--review); }
+.verdicts .v-not-fc     { border-color: var(--not-fc); color: var(--not-fc); }
 .verdicts .v-clear      { border-color: var(--clear); color: var(--clear); }
 
 .verdicts button.active {
