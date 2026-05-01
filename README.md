@@ -6,15 +6,25 @@ Given `configs/malayalam_factcheck_sources.json`, the pipeline discovers article
 
 ## Status
 
-Scaffolding and config validation are in place. The pipeline stages themselves are not yet implemented.
+Vertical slice is live end-to-end on `factcrescendo_ml`. A 5-URL pilot run goes
+discover → fetch → extract → normalize → package and writes a valid
+`data/processed/corpus_v1.parquet`.
 
-Currently working:
+Working:
 
-- Project boots under `uv`, installs cleanly, CLI is discoverable (`mfc --help`).
-- `mfc validate-config` and `scripts/validate_sources.py` load and validate the seed JSON against the pydantic schema.
-- `ruff`, `ruff format`, and `mypy --strict` pass on the scaffold.
+- `mfc validate-config`, `discover`, `fetch`, `extract`, `normalize`, `package` are wired.
+- ClaimReview JSON-LD is the primary extractor; per-source CSS selectors are the fallback.
+- Async httpx fetcher with a hishel SQLite HTTP cache, robots.txt registry, tenacity backoff, and per-host concurrency caps.
+- Verdict canonicalisation (longest-alias-wins), Malayalam/Latin/mixed script detection, and `dateparser`-backed UTC date parsing.
+- zstd Parquet output via polars, validated through `FactCheckRecord` on the way in.
+- `ruff`, `ruff format`, and `mypy --strict` pass; CI runs them on every push.
 
-Not yet implemented: `discover`, `fetch`, `extract`, `normalize`, `dedup`, `package`, `all` stages all raise `NotImplementedError`. The vertical slice on `factcrescendo_ml` is the next milestone.
+Not yet implemented: `dedup` (semantic clustering), `all` orchestration, the
+trafilatura readability fallback, and vcrpy cassettes for offline CI testing.
+
+Pilot finding: `factcrescendo_ml` currently emits **no** ClaimReview JSON-LD,
+so all 5 records came from the selectors fallback at `extractor_confidence = 0.6`.
+Coverage on the other four IFCN sources has not been measured yet.
 
 ## Sources
 
@@ -43,18 +53,26 @@ uv sync
 ## Usage
 
 ```bash
-uv run mfc --help                          # list stages
-uv run mfc validate-config                 # validate the seed JSON
+uv run mfc --help                                          # list stages
+uv run mfc validate-config                                 # validate the seed JSON
 
-# Once the pipeline is implemented:
-uv run mfc all --pilot                     # 50 URLs per source end-to-end
-uv run mfc discover --source factcrescendo_ml --limit 5
-uv run mfc fetch    --source factcrescendo_ml --limit 5
-uv run mfc extract  --source factcrescendo_ml --limit 5
-uv run mfc normalize
+# Single-source pilot, end-to-end:
+uv run mfc discover  --source factcrescendo_ml --limit 5
+uv run mfc fetch     --source factcrescendo_ml
+uv run mfc extract   --source factcrescendo_ml
+uv run mfc normalize --source factcrescendo_ml
+uv run mfc package   --source factcrescendo_ml --version 1
+
+# Not yet implemented:
 uv run mfc dedup
-uv run mfc package  --version 1
+uv run mfc all --pilot
 ```
+
+Stage outputs land under `data/interim/{source_id}/` (`urls.jsonl`,
+`fetched.jsonl`, `records.jsonl`) with raw HTML cached in
+`data/raw/html/{source_id}/` and the final Parquet in `data/processed/`. Each
+stage is independently resumable: re-running `extract` on already-fetched URLs
+is free, and the hishel cache short-circuits HTTP for unchanged pages.
 
 Dev checks:
 
@@ -69,13 +87,18 @@ uv run pytest
 
 ```
 configs/malayalam_factcheck_sources.json   # sources config (treated as the seed)
-src/mfc/                                   # package source
+src/mfc/
   cli.py                                   # typer entrypoint
   config.py                                # SourcesFile, SourceConfig, ...
-  corpus/record.py                         # FactCheckRecord
-  discovery/ fetch/ extract/ normalize/ dedup/ corpus/ utils/
+  paths.py                                 # data/ layout helpers
+  discovery/  rss.py                       # RSS / Atom feed -> URL list
+  fetch/      client.py cache.py robots.py # async httpx + hishel + robots
+  extract/    claimreview.py selectors.py pipeline.py
+  normalize/  labels.py script.py dates.py
+  corpus/     record.py writer.py          # FactCheckRecord + Parquet writer
+  utils/      hashing.py jsonl.py
 scripts/validate_sources.py                # standalone config validator
-tests/fixtures/                            # vcrpy cassettes + ground-truth records
+tests/fixtures/                            # (planned) vcrpy cassettes
 data/                                      # gitignored; pipeline outputs
 ```
 
