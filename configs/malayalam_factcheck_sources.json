@@ -40,15 +40,15 @@
       "extraction": {
         "claimreview_jsonld": true,
         "selectors": {
-          "title": "h1.entry-title, h1.tdb-title-text",
+          "title": "h1.entry-title, h1.tdb-title-text, span.fc-title-text",
           "content": "div.td-post-content, article .entry-content",
-          "published_date": "time.entry-date, meta[property='article:published_time']",
-          "claim": ".claim-box, .claimreview-claim",
-          "verdict": ".rating-box, .claimreview-rating",
-          "author": ".td-post-author-name a, .author-name"
+          "published_date": "meta[property='article:published_time'], time.entry-date",
+          "claim": "span.fc-title-text, .claim-box, .claimreview-claim",
+          "verdict": "span.fc-result-text, .rating-box, .claimreview-rating",
+          "author": ".fc-author-card a, .td-post-author-name a, .author-name"
         }
       },
-      "notes": "Primary Malayalam fact-checker. ClaimReview JSON-LD coverage was 0/5 on a 2026-04 RSS pilot — the Yoast SEO graph emits Article/WebPage but no ClaimReview. Selectors fallback is required for this source."
+      "notes": "Primary Malayalam fact-checker. ClaimReview JSON-LD coverage was 0/5 on a 2026-04 RSS pilot — the Yoast SEO graph emits Article/WebPage but no ClaimReview. Selectors fallback uses the site's own .fc-title-text / .fc-result-text card."
     },
     {
       "id": "newschecker_ml",

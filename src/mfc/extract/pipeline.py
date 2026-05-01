@@ -1,7 +1,8 @@
 """Runs extractors in priority order. First success wins.
 
-For the pilot, only the ClaimReview JSON-LD extractor is wired up. The
-selectors and readability fallbacks land in a later iteration.
+JSON-LD ``ClaimReview`` is the primary path for IFCN sources. When that
+returns ``None``, the per-source CSS selector block from the config takes
+over. The trafilatura readability fallback lands in a later iteration.
 """
 
 from __future__ import annotations
@@ -9,6 +10,7 @@ from __future__ import annotations
 from mfc.config import SourceConfig
 from mfc.extract.base import ExtractResult
 from mfc.extract.claimreview import extract_claimreview
+from mfc.extract.selectors import extract_selectors
 
 
 def run_extractors(html: str, url: str, source: SourceConfig) -> ExtractResult | None:
@@ -23,6 +25,11 @@ def run_extractors(html: str, url: str, source: SourceConfig) -> ExtractResult |
             body_selector=body_selector,
             title_selector=title_selector,
         )
+        if result is not None:
+            return result
+
+    if selectors:
+        result = extract_selectors(html, url, selectors)
         if result is not None:
             return result
 
