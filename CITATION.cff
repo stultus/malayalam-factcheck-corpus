@@ -14,6 +14,14 @@ authors:
     orcid: "https://orcid.org/0009-0004-9502-401X"
 repository-code: "https://github.com/stultus/malayalam-factcheck-corpus"
 url: "https://github.com/stultus/malayalam-factcheck-corpus"
+doi: 10.5281/zenodo.19940702
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.19940702
+    description: Concept DOI (resolves to the latest archived version on Zenodo)
+  - type: doi
+    value: 10.5281/zenodo.19940703
+    description: Version DOI for v0.1.1
 abstract: >-
   A reproducible batch pipeline that ingests Malayalam fact-check
   articles from IFCN-certified Indian portals and produces a
@@ -30,5 +38,5 @@ keywords:
   - low-resource-nlp
   - dataset
 license: MIT
-version: "1.0"
+version: "0.1.1"
 date-released: "2026-05-01"

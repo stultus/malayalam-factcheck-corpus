@@ -118,6 +118,8 @@ If you are a rights holder, publisher, or named individual and want content remo
 
 ## Citation
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19940702.svg)](https://doi.org/10.5281/zenodo.19940702)
+
 If this corpus or pipeline is useful in your work, a citation would be appreciated. GitHub renders a "Cite this repository" widget from [`CITATION.cff`](CITATION.cff); the BibTeX equivalent is:
 
 ```bibtex
@@ -125,11 +127,15 @@ If this corpus or pipeline is useful in your work, a citation would be appreciat
   author       = {Bhaskaran, Hrishikesh},
   title        = {malayalam-factcheck-corpus},
   year         = {2026},
-  version      = {1.0},
+  version      = {0.1.1},
+  doi          = {10.5281/zenodo.19940702},
+  url          = {https://doi.org/10.5281/zenodo.19940702},
   howpublished = {\url{https://github.com/stultus/malayalam-factcheck-corpus}},
   note         = {Pipeline and labelled corpus of Malayalam fact-check articles}
 }
 ```
+
+The DOI above is the **concept DOI** — it always resolves to the latest archived version. To cite a specific snapshot, use the version DOI listed on the [Zenodo record](https://doi.org/10.5281/zenodo.19940702) (e.g. `10.5281/zenodo.19940703` for v0.1.1).
 
 It helps reproducibility if the `version` field reflects the corpus version you actually used (`corpus_v{N}.parquet`) rather than repo HEAD, since re-runs against newer source state produce different records.
 
