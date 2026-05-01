@@ -22,6 +22,7 @@ from mfc.normalize.dates import parse_date
 from mfc.normalize.labels import canonical_verdict
 from mfc.normalize.script import detect_script
 from mfc.paths import (
+    DEDUPED_PATH,
     PROCESSED_ROOT,
     RAW_ROOT,
     ensure_dir,
@@ -305,9 +306,35 @@ def _to_record(
 
 
 @app.command()
-def dedup() -> None:
-    """Stage 5: semantic dedup of claims across sources."""
-    raise NotImplementedError("dedup is not implemented yet")
+def dedup(
+    threshold: Annotated[
+        float, typer.Option("--threshold", help="Cosine similarity threshold.")
+    ] = 0.85,
+) -> None:
+    """Stage 5: cluster claims across sources, mark duplicates of the earliest."""
+    from mfc.dedup.semantic import assign_duplicates
+
+    config = _load_config(DEFAULT_CONFIG)
+    records: list[FactCheckRecord] = []
+    for src in config.sources:
+        path = records_path(src.id)
+        if not path.exists():
+            continue
+        for row in read_jsonl(path):
+            records.append(FactCheckRecord.model_validate(row))
+
+    if not records:
+        typer.echo("dedup: no records found; run normalize first", err=True)
+        raise typer.Exit(code=2)
+
+    deduped = assign_duplicates(records, threshold=threshold)
+    rows = [r.model_dump(mode="json") for r in deduped]
+    written = write_jsonl(DEDUPED_PATH, rows)
+    cluster_count = sum(1 for r in deduped if r.duplicate_of is None)
+    typer.echo(
+        f"dedup: {written} records, {cluster_count} clusters, "
+        f"{written - cluster_count} duplicates -> {DEDUPED_PATH}"
+    )
 
 
 @app.command()
@@ -315,18 +342,22 @@ def package(
     version: Annotated[int, typer.Option("--version", "-v", help="Corpus version number.")],
     source: Annotated[str | None, typer.Option("--source", "-s")] = None,
 ) -> None:
-    """Stage 6: validate normalized records and write Parquet."""
+    """Stage 6: validate records and write Parquet (deduped output by default)."""
     config = _load_config(DEFAULT_CONFIG)
-    sources = [config.source(source)] if source else config.sources
 
     all_records: list[FactCheckRecord] = []
-    for src in sources:
-        path = records_path(src.id)
-        if not path.exists():
-            logger.warning("package: skipping source with no records", source_id=src.id)
-            continue
-        for row in read_jsonl(path):
+    if source is None and DEDUPED_PATH.exists():
+        for row in read_jsonl(DEDUPED_PATH):
             all_records.append(FactCheckRecord.model_validate(row))
+    else:
+        sources = [config.source(source)] if source else config.sources
+        for src in sources:
+            path = records_path(src.id)
+            if not path.exists():
+                logger.warning("package: skipping source with no records", source_id=src.id)
+                continue
+            for row in read_jsonl(path):
+                all_records.append(FactCheckRecord.model_validate(row))
 
     out = PROCESSED_ROOT / f"corpus_v{version}.parquet"
     written = write_parquet(all_records, out)
@@ -338,8 +369,70 @@ def run_all(
     pilot: Annotated[bool, typer.Option("--pilot", help="Cap to 50 URLs per source.")] = False,
     version: Annotated[int, typer.Option("--version", "-v")] = 1,
 ) -> None:
-    """Run every stage end-to-end."""
-    raise NotImplementedError("all is not implemented yet")
+    """Run every stage end-to-end across every configured source."""
+    config = _load_config(DEFAULT_CONFIG)
+    limit = 50 if pilot else None
+
+    for src in config.sources:
+        try:
+            _run_source(config, src, limit=limit)
+        except Exception as err:
+            logger.warning("all: source failed; continuing", source_id=src.id, error=str(err))
+
+    dedup()
+    package(version=version)
+
+
+def _run_source(config: SourcesFile, src: SourceConfig, *, limit: int | None) -> None:
+    if src.discovery.rss is None:
+        logger.warning("all: skipping source with no rss feed", source_id=src.id)
+        return
+
+    urls = asyncio.run(_run_discover(config, str(src.discovery.rss)))
+    if limit is not None:
+        urls = urls[:limit]
+    write_jsonl(urls_path(src.id), [{"url": u, "discovered_at": _now_iso()} for u in urls])
+
+    fetched = asyncio.run(
+        _run_fetch(config, src.id, [{"url": u} for u in urls]),
+    )
+    write_jsonl(fetched_path(src.id), fetched)
+
+    extracted: list[dict[str, Any]] = []
+    for entry in fetched:
+        html = Path(entry["html_path"]).read_text(encoding="utf-8")
+        result = run_extractors(html, entry["url"], src)
+        if result is None:
+            logger.warning("all: extract skipped", source_id=src.id, url=entry["url"])
+            continue
+        extracted.append(
+            {
+                "url": entry["url"],
+                "record_id": entry["record_id"],
+                "fetched_at": entry["fetched_at"],
+                "extract": result.model_dump(mode="json"),
+            }
+        )
+
+    label_source = _label_source(src)
+    normalized: list[dict[str, Any]] = []
+    for entry in extracted:
+        result = ExtractResult.model_validate(entry["extract"])
+        record = _to_record(
+            entry=entry,
+            extract=result,
+            source=src,
+            label_source=label_source,
+            label_lookup=config.canonical_labels,
+        )
+        if record is not None:
+            normalized.append(record.model_dump(mode="json"))
+
+    write_jsonl(records_path(src.id), normalized)
+    typer.echo(
+        f"all[{src.id}]: {len(urls)} urls -> {len(fetched)} fetched -> "
+        f"{len(extracted)} extracted -> {len(normalized)} normalized"
+    )
 
 
 if __name__ == "__main__":

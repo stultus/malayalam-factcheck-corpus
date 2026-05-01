@@ -33,6 +33,9 @@ def records_path(source_id: str) -> Path:
     return source_interim_dir(source_id) / "records.jsonl"
 
 
+DEDUPED_PATH = INTERIM_ROOT / "all" / "records_deduped.jsonl"
+
+
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
