@@ -35,6 +35,9 @@ def records_path(source_id: str) -> Path:
 
 DEDUPED_PATH = INTERIM_ROOT / "all" / "records_deduped.jsonl"
 
+LABELS_ROOT = DATA_ROOT / "labels"
+MANUAL_LABELS_PATH = LABELS_ROOT / "manual_labels.parquet"
+
 
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)

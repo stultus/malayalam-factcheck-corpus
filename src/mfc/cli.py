@@ -393,6 +393,8 @@ def package(
     source: Annotated[str | None, typer.Option("--source", "-s")] = None,
 ) -> None:
     """Stage 6: validate records and write Parquet (deduped output by default)."""
+    from mfc.label.store import LabelStore
+
     config = _load_config(DEFAULT_CONFIG)
 
     all_records: list[FactCheckRecord] = []
@@ -409,9 +411,94 @@ def package(
             for row in read_jsonl(path):
                 all_records.append(FactCheckRecord.model_validate(row))
 
+    manual_labels = LabelStore().all()
+    overridden = 0
+    if manual_labels:
+        merged: list[FactCheckRecord] = []
+        for record in all_records:
+            label = manual_labels.get(record.record_id)
+            # needs_review is a sidecar-only flag; it does not map to any
+            # canonical verdict and so cannot override the auto verdict.
+            if label is None or label.verdict == "needs_review":
+                merged.append(record)
+                continue
+            merged.append(
+                record.model_copy(
+                    update={
+                        "verdict_canonical": label.verdict,
+                        "label_source": "manual",
+                    }
+                )
+            )
+            overridden += 1
+        all_records = merged
+
     out = PROCESSED_ROOT / f"corpus_v{version}.parquet"
     written = write_parquet(all_records, out)
-    typer.echo(f"package: {written} rows -> {out}")
+    typer.echo(
+        f"package: {written} rows -> {out}"
+        + (f" ({overridden} manual overrides)" if overridden else "")
+    )
+
+
+label_app = typer.Typer(
+    name="label",
+    help="Manual labelling tool (browser UI; the terminal renders Malayalam poorly).",
+    no_args_is_help=False,
+    invoke_without_command=True,
+)
+app.add_typer(label_app)
+
+
+@label_app.callback()
+def label_default(
+    ctx: typer.Context,
+    host: Annotated[str, typer.Option("--host", help="Bind address.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", help="0 picks a free port.")] = 0,
+    no_browser: Annotated[bool, typer.Option("--no-browser", help="Don't auto-open.")] = False,
+) -> None:
+    """Start the localhost labelling server (default subcommand)."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from mfc.label.server import serve
+
+    try:
+        serve(host=host, port=port, open_browser=not no_browser)
+    except RuntimeError as err:
+        typer.echo(f"error: {err}", err=True)
+        raise typer.Exit(code=2) from None
+
+
+@label_app.command("stats")
+def label_stats() -> None:
+    """Print a one-line summary of the manual-labels sidecar."""
+    from collections import Counter
+
+    from mfc.label.store import LabelStore
+
+    labels = LabelStore().all()
+    if not labels:
+        typer.echo("label stats: no manual labels yet")
+        return
+    counts = Counter(label.verdict for label in labels.values())
+    breakdown = ", ".join(f"{v}={n}" for v, n in sorted(counts.items()))
+    typer.echo(f"label stats: {len(labels)} labels ({breakdown})")
+
+
+@label_app.command("export")
+def label_export(
+    out: Annotated[Path, typer.Option("--out", "-o", help="Output JSON path.")],
+) -> None:
+    """Dump the manual labels sidecar as a JSON array."""
+    import json
+
+    from mfc.label.store import LabelStore
+
+    labels = LabelStore().all()
+    rows = [label.model_dump(mode="json") for label in labels.values()]
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+    typer.echo(f"label export: {len(rows)} labels -> {out}")
 
 
 @app.command("all")

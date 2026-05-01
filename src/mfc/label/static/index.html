@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>malayalam-factcheck-corpus / labeller</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <strong>malayalam-factcheck-corpus</strong>
+        <span class="muted">manual labeller</span>
+      </div>
+      <div class="progress">
+        <span id="position">0 / 0</span>
+        <span class="muted">·</span>
+        <span id="labelled-count">0 labelled</span>
+      </div>
+    </header>
+
+    <nav class="filters">
+      <label>
+        Source
+        <select id="filter-source"><option value="">all</option></select>
+      </label>
+      <label>
+        Show
+        <select id="filter-status">
+          <option value="all">all</option>
+          <option value="unlabelled">unlabelled only</option>
+          <option value="labelled">labelled only</option>
+          <option value="unknown" selected>auto-verdict = unknown</option>
+        </select>
+      </label>
+      <label>
+        Script
+        <select id="filter-script">
+          <option value="">any</option>
+          <option value="mlym">mlym</option>
+          <option value="latn">latn</option>
+          <option value="mixed">mixed</option>
+          <option value="unknown">unknown</option>
+        </select>
+      </label>
+      <button id="btn-reload" type="button">reload</button>
+    </nav>
+
+    <main id="card" class="card">
+      <p class="muted">loading…</p>
+    </main>
+
+    <section class="verdicts" id="verdicts" hidden>
+      <button data-verdict="false" class="v-false">
+        false <kbd>1</kbd>
+      </button>
+      <button data-verdict="misleading" class="v-misleading">
+        misleading <kbd>2</kbd>
+      </button>
+      <button data-verdict="partly_false" class="v-partly">
+        partly_false <kbd>3</kbd>
+      </button>
+      <button data-verdict="true" class="v-true">
+        true <kbd>4</kbd>
+      </button>
+      <button data-verdict="unverified" class="v-unverified">
+        unverified <kbd>5</kbd>
+      </button>
+      <button data-verdict="satire" class="v-satire">
+        satire <kbd>6</kbd>
+      </button>
+      <button data-verdict="needs_review" class="v-review">
+        needs_review <kbd>7</kbd>
+      </button>
+      <button data-verdict="__delete__" class="v-clear">
+        clear <kbd>0</kbd>
+      </button>
+    </section>
+
+    <section class="notes-row" id="notes-row" hidden>
+      <textarea
+        id="notes"
+        placeholder="optional notes (saved with the next verdict click)"
+        rows="2"
+      ></textarea>
+    </section>
+
+    <footer class="hints" id="hints" hidden>
+      <span><kbd>←</kbd> / <kbd>→</kbd> navigate</span>
+      <span><kbd>1</kbd>–<kbd>7</kbd> verdict</span>
+      <span><kbd>0</kbd> clear</span>
+      <span><kbd>n</kbd> next unlabelled</span>
+      <span><kbd>o</kbd> open article</span>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

@@ -17,7 +17,7 @@ Language = Literal["ml", "en", "multi"]
 VerdictCanonical = Literal[
     "false", "misleading", "partly_false", "true", "unverified", "satire", "unknown"
 ]
-LabelSource = Literal["ifcn", "media_house", "government", "weakly_labelled"]
+LabelSource = Literal["ifcn", "media_house", "government", "weakly_labelled", "manual"]
 ExtractorUsed = Literal["claimreview_jsonld", "css_selectors", "readability"]
 
 

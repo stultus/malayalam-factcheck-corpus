@@ -6,7 +6,7 @@ Given `configs/malayalam_factcheck_sources.json`, the pipeline discovers article
 
 ## Status
 
-All six pipeline stages are wired and a full pilot run (`mfc all --pilot`) currently produces `data/processed/corpus_v1.parquet` with 71 records across 5 of the 8 configured sources.
+All six pipeline stages are wired and a full pilot run (`mfc all --pilot`) currently produces `data/processed/corpus_v1.parquet` with 170 records across 6 of the 8 configured sources. A localhost browser-based labelling tool (`mfc label`) sits alongside the pipeline so the long tail of `verdict_canonical = "unknown"` records can be reviewed by hand.
 
 Working:
 
@@ -15,8 +15,8 @@ Working:
 - Three-tier extraction fallback: ClaimReview JSON-LD → per-source CSS selectors → trafilatura readability.
 - Async httpx fetcher with a hishel SQLite HTTP cache, robots.txt registry, tenacity backoff, and per-host concurrency caps.
 - Verdict canonicalisation (longest-alias-wins), Malayalam/Latin/mixed script detection, `dateparser`-backed UTC dates, and semantic dedup via multilingual sentence embeddings (greedy cosine clustering, threshold 0.85).
-- zstd Parquet output via polars, validated through `FactCheckRecord` on the way in.
-- `ruff`, `mypy --strict`, and `pytest` (29 tests against committed HTML fixtures) all pass; CI runs them on every push.
+- zstd Parquet output via polars, validated through `FactCheckRecord` on the way in. Manual labels stored in a sidecar parquet (`data/labels/manual_labels.parquet`) and joined into the corpus at packaging time, overriding the auto verdict and setting `label_source = "manual"`.
+- `ruff`, `mypy --strict`, and `pytest` (42 tests against committed HTML fixtures + an in-process labelling-server fixture) all pass; CI runs them on every push.
 
 Coverage caveats from the pilot run:
 
@@ -64,6 +64,11 @@ uv run mfc extract   --source factcrescendo_ml
 uv run mfc normalize --source factcrescendo_ml
 uv run mfc dedup
 uv run mfc package   --version 1
+
+# Manual labelling (browser UI on 127.0.0.1; terminal Malayalam rendering is unusable):
+uv run mfc label                                           # opens default browser
+uv run mfc label stats                                     # one-line verdict breakdown
+uv run mfc label export --out data/labels/snapshot.json    # dump sidecar to JSON
 ```
 
 Stage outputs land under `data/interim/{source_id}/` (`urls.jsonl`,
@@ -95,6 +100,7 @@ src/mfc/
   normalize/  labels.py script.py dates.py
   dedup/      semantic.py                  # multilingual sentence-transformer cosine clustering
   corpus/     record.py writer.py          # FactCheckRecord + Parquet writer
+  label/      store.py server.py static/   # localhost manual-labelling sidecar + browser UI
   utils/      hashing.py jsonl.py
 scripts/                                   # validate_sources.py, sample_pilot.py, measure_claimreview_coverage.py
 tests/                                     # pytest suite + committed HTML fixtures
@@ -115,6 +121,8 @@ Building a corpus from third-party fact-check articles has copyright, data-prote
 - A re-fetch-from-URL release pattern is far safer than shipping article bodies.
 
 If you are a rights holder, publisher, or named individual and want content removed, see [TAKEDOWN.md](TAKEDOWN.md).
+
+A draft [DATASHEET.md](DATASHEET.md) (Gebru et al., *Datasheets for Datasets*) documents motivation, composition, collection, and intended uses of the corpus. It will be filled in fully as the corpus stabilises past the pilot.
 
 ## Citation
 
