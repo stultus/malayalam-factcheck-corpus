@@ -1,8 +1,11 @@
 """Detect Malayalam vs Latin vs mixed (Manglish) script in claim text.
 
 Counts Malayalam Unicode block (``U+0D00``-``U+0D7F``) and basic Latin
-letter codepoints, ignoring whitespace, digits, and punctuation. Threshold
-is 80% per CLAUDE.md design rule 6.
+letter codepoints, ignoring whitespace, digits, and punctuation. The
+script tag is ``mlym`` if ≥80% of letter codepoints fall in the
+Malayalam block, ``latn`` if ≥80% are Latin, otherwise ``mixed``. The
+corpus preserves the original script: transliteration is left to
+downstream model preprocessing.
 """
 
 from __future__ import annotations

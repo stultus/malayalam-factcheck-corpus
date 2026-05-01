@@ -4,7 +4,10 @@ The model (`paraphrase-multilingual-mpnet-base-v2`) is lazy-imported so
 the rest of the CLI stays fast for users who never invoke `dedup`. Records
 are sorted by `published_date` ascending; the earliest record in each
 cluster keeps `duplicate_of=None`, every later record points back to it.
-The cosine threshold defaults to 0.85 per CLAUDE.md design rule 5.
+The cosine threshold defaults to 0.85: dedup runs across sources, not
+within, so the same claim debunked by three portals collapses to one
+cluster (the earliest), keeping the other two visible in the corpus
+but excluded from training splits via the ``duplicate_of`` filter.
 """
 
 from __future__ import annotations

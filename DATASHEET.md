@@ -67,9 +67,11 @@ everything else reflects the current pipeline behaviour.
   intentionally-public fact-check journalism. The legal posture
   (copyright, DPDP Act 2023, defamation) is documented in `LEGAL.md`.
 - **Did individuals consent?** Public-interest journalism does not
-  generally require subject consent; the corpus does not add downstream
-  identification or linking against named individuals (see
-  `CLAUDE.md` § "Personal data").
+  generally require subject consent. This corpus does not augment,
+  identify, link, or enrich records against named individuals, and is
+  not released for any use that would enable such identification. See
+  the "Personal data" section of [LEGAL.md](LEGAL.md), which is
+  informed by India's Digital Personal Data Protection Act 2023.
 
 ## Preprocessing / cleaning / labelling
 
