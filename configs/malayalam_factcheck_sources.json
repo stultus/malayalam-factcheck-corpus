@@ -151,13 +151,13 @@
         "claimreview_jsonld": true,
         "selectors": {
           "title": "h1",
-          "content": "div.story-kicker, div.description, .story-body",
+          "content": "div.story-with-main-sec, div.story-kicker, div.description, .story-body",
           "published_date": "time, .update-time",
           "claim": ".fact-check-claim, .story-claim",
           "verdict": ".fact-check-verdict, .fact"
         }
       },
-      "notes": "AFWA = Anti Fake News War-room. Strong in election-cycle claims. The disclosed news-sitemap is a sitewide news index (lifestyle, business, etc.); discovery uses the /fact-check category page filtered to /fact-check/story/ URLs so navigation chrome (about-us, methodology, etc.) is excluded."
+      "notes": "AFWA = Anti Fake News War-room. Strong in election-cycle claims. The disclosed news-sitemap is a sitewide news index (lifestyle, business, etc.); discovery uses the /fact-check category page filtered to /fact-check/story/ URLs so navigation chrome (about-us, methodology, etc.) is excluded. Body container is currently div.story-with-main-sec (verified against 2026-04 fixtures); the prior selectors are kept as fallbacks for older layouts."
     },
     {
       "id": "manorama_factcheck",
