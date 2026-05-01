@@ -66,6 +66,9 @@ uv run mfc dedup
 uv run mfc package   --version 1                              # internal corpus (full prose)
 uv run mfc package   --version 1 --tier publishable           # permissioned subset, evidence_text snipped
 
+# Consumer-side: reconstruct the full corpus from a published labels overlay:
+uv run mfc rehydrate --input corpus_v1_publishable.parquet --output corpus_v1_local.parquet
+
 # Manual labelling (browser UI on 127.0.0.1; terminal Malayalam rendering is unusable):
 uv run mfc label                                           # opens default browser
 uv run mfc label stats                                     # one-line verdict breakdown

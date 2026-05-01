@@ -480,6 +480,45 @@ def package(
     )
 
 
+@app.command()
+def rehydrate(
+    input_path: Annotated[
+        Path,
+        typer.Option(
+            "--input",
+            "-i",
+            exists=True,
+            dir_okay=False,
+            help="Published parquet (publishable tier or any compatible labels overlay).",
+        ),
+    ],
+    output_path: Annotated[
+        Path,
+        typer.Option("--output", "-o", help="Where to write the full reconstructed corpus."),
+    ],
+) -> None:
+    """Re-fetch every URL in INPUT and rebuild the full corpus locally.
+
+    This is the consumer-side companion to ``mfc package --tier publishable``:
+    we ship URLs and verdicts; you re-derive evidence_text and the rest from
+    the live source on your own machine.
+    """
+    from mfc.rehydrate import rehydrate_corpus
+
+    config = _load_config(DEFAULT_CONFIG)
+    summary = asyncio.run(rehydrate_corpus(input_path, output_path, config))
+    typer.echo(
+        f"rehydrate: {summary.rehydrated}/{summary.requested} rows -> {output_path} "
+        f"(skipped: {summary.skipped_unknown_source} unknown source, "
+        f"{summary.skipped_fetch_failed} fetch, "
+        f"{summary.skipped_extract_failed} extract, "
+        f"{summary.skipped_unparseable_date} date)"
+    )
+    if summary.by_source:
+        breakdown = ", ".join(f"{sid}={n}" for sid, n in sorted(summary.by_source.items()))
+        typer.echo(f"  by source: {breakdown}")
+
+
 label_app = typer.Typer(
     name="label",
     help="Manual labelling tool (browser UI; the terminal renders Malayalam poorly).",
