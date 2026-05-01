@@ -114,7 +114,7 @@
       "publisher_org": "NewsMeter",
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://newsmeter.in/sitemap.xml",
+        "sitemap": "https://newsmeter.in/sitemap-daily.xml",
         "category_pages": ["https://newsmeter.in/fact-check-malayalam"]
       },
       "extraction": {
@@ -140,7 +140,7 @@
       "publisher_org": "TV Today Network Ltd.",
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://malayalam.indiatoday.in/sitemap.xml",
+        "sitemap": "https://malayalam.indiatoday.in/rssfeeds/news-sitemap.xml",
         "category_pages": ["https://malayalam.indiatoday.in/fact-check"]
       },
       "extraction": {

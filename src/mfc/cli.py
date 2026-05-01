@@ -15,6 +15,7 @@ from mfc.config import SourceConfig, SourcesFile
 from mfc.corpus.record import FactCheckRecord, LabelSource
 from mfc.corpus.writer import write_parquet
 from mfc.discovery.rss import fetch_rss_urls
+from mfc.discovery.sitemap import fetch_sitemap_urls
 from mfc.extract.base import ExtractResult
 from mfc.extract.pipeline import run_extractors
 from mfc.fetch.client import RobotsDisallowed, open_fetch_client
@@ -90,26 +91,41 @@ def discover(
     source: Annotated[str, typer.Option("--source", "-s", help="Source id to discover.")],
     limit: Annotated[int | None, typer.Option("--limit", help="Cap URLs for pilot runs.")] = None,
 ) -> None:
-    """Stage 1: list article URLs for a source via RSS."""
+    """Stage 1: list article URLs via RSS, falling back to sitemap."""
     config = _load_config(DEFAULT_CONFIG)
     src = config.source(source)
-    feed = src.discovery.rss
-    if feed is None:
-        typer.echo(f"error: source {source} has no rss feed configured", err=True)
+    if src.discovery.rss is None and src.discovery.sitemap is None:
+        typer.echo(f"error: source {source} has no rss or sitemap configured", err=True)
         raise typer.Exit(code=2)
 
-    urls = asyncio.run(_run_discover(config, str(feed)))
-    if limit is not None:
-        urls = urls[:limit]
+    urls = asyncio.run(_run_discover(config, src, limit))
 
     rows = [{"url": u, "discovered_at": _now_iso()} for u in urls]
     written = write_jsonl(urls_path(source), rows)
     typer.echo(f"discover: {source} -> {written} urls -> {urls_path(source)}")
 
 
-async def _run_discover(config: SourcesFile, feed_url: str) -> list[str]:
+def _section_prefix(src: SourceConfig) -> str | None:
+    if src.malayalam_section is not None:
+        return str(src.malayalam_section)
+    if src.discovery.category_pages:
+        return str(src.discovery.category_pages[0])
+    return None
+
+
+async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | None) -> list[str]:
     async with open_fetch_client(config.global_crawler_policy) as client:
-        return await fetch_rss_urls(client, feed_url)
+        if src.discovery.rss is not None:
+            urls = await fetch_rss_urls(client, str(src.discovery.rss))
+            return urls if limit is None else urls[:limit]
+
+        assert src.discovery.sitemap is not None
+        return await fetch_sitemap_urls(
+            client,
+            str(src.discovery.sitemap),
+            url_prefix=_section_prefix(src),
+            max_urls=limit,
+        )
 
 
 @app.command()
@@ -384,13 +400,11 @@ def run_all(
 
 
 def _run_source(config: SourcesFile, src: SourceConfig, *, limit: int | None) -> None:
-    if src.discovery.rss is None:
-        logger.warning("all: skipping source with no rss feed", source_id=src.id)
+    if src.discovery.rss is None and src.discovery.sitemap is None:
+        logger.warning("all: skipping source with no rss or sitemap", source_id=src.id)
         return
 
-    urls = asyncio.run(_run_discover(config, str(src.discovery.rss)))
-    if limit is not None:
-        urls = urls[:limit]
+    urls = asyncio.run(_run_discover(config, src, limit))
     write_jsonl(urls_path(src.id), [{"url": u, "discovered_at": _now_iso()} for u in urls])
 
     fetched = asyncio.run(
