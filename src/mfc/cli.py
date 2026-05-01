@@ -12,6 +12,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from mfc.config import SourceConfig, SourcesFile
+from mfc.corpus.publish import DEFAULT_SNIPPET_CHARS, prepare_publishable
 from mfc.corpus.record import FactCheckRecord, LabelSource
 from mfc.corpus.writer import write_parquet
 from mfc.discovery.category import fetch_category_urls
@@ -391,9 +392,28 @@ def dedup(
 def package(
     version: Annotated[int, typer.Option("--version", "-v", help="Corpus version number.")],
     source: Annotated[str | None, typer.Option("--source", "-s")] = None,
+    tier: Annotated[
+        str,
+        typer.Option(
+            "--tier",
+            help="`internal` (full prose) or `publishable` (permissioned sources, "
+            "evidence_text snippet only).",
+        ),
+    ] = "internal",
+    snippet_chars: Annotated[
+        int,
+        typer.Option(
+            "--snippet-chars",
+            help="Max evidence_text length in publishable tier. Ignored for internal.",
+        ),
+    ] = DEFAULT_SNIPPET_CHARS,
 ) -> None:
     """Stage 6: validate records and write Parquet (deduped output by default)."""
     from mfc.label.store import LabelStore
+
+    if tier not in {"internal", "publishable"}:
+        typer.echo(f"error: --tier must be 'internal' or 'publishable', got {tier!r}", err=True)
+        raise typer.Exit(code=2)
 
     config = _load_config(DEFAULT_CONFIG)
 
@@ -432,6 +452,25 @@ def package(
             )
             overridden += 1
         all_records = merged
+
+    if tier == "publishable":
+        all_records, summary = prepare_publishable(all_records, config, snippet_chars=snippet_chars)
+        out = PROCESSED_ROOT / f"corpus_v{version}_publishable.parquet"
+        written = write_parquet(all_records, out)
+        granted_sources = sorted(summary.by_source)
+        typer.echo(
+            f"package[publishable]: {written} rows -> {out} "
+            f"({summary.dropped_no_permission} dropped, no permission; "
+            f"{summary.redacted_evidence} evidence snippets)"
+        )
+        if granted_sources:
+            typer.echo(f"  granted sources: {', '.join(granted_sources)}")
+        else:
+            typer.echo(
+                "  no sources currently have permission_status=granted; "
+                "publishable parquet is empty."
+            )
+        return
 
     out = PROCESSED_ROOT / f"corpus_v{version}.parquet"
     written = write_parquet(all_records, out)

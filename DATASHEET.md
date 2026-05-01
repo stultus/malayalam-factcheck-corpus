@@ -109,9 +109,13 @@ everything else reflects the current pipeline behaviour.
 - **Will the dataset be distributed to third parties?** Yes — eventually,
   but in tiers. The pipeline code (this repository, MIT) is already
   public. The corpus itself is gated on per-source publisher
-  permissions; the default release pattern is URLs + structured
-  fields + canonical labels + a re-fetch script (`mfc rehydrate`,
-  TBD), not full debunking prose.
+  permissions. The `mfc package --tier publishable` command emits a
+  parquet that drops records from any source whose `permission_status`
+  is not `granted`, and replaces `evidence_text` with the first 280
+  characters plus a re-fetch hint. Sources upgrade to `granted` only
+  after the publisher confirms in writing (see `docs/outreach/`).
+  The matching `mfc rehydrate` script (TBD) lets a consumer rebuild the
+  full corpus on their own machine from the published URL list.
 - **License.** Code: MIT. Released corpus: CC BY-NC 4.0 or stricter,
   per source permission. See `LEGAL.md`.
 - **DOI.** Concept DOI 10.5281/zenodo.19940702 (resolves to latest);

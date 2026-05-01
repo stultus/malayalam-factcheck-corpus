@@ -63,7 +63,8 @@ uv run mfc fetch     --source factcrescendo_ml
 uv run mfc extract   --source factcrescendo_ml
 uv run mfc normalize --source factcrescendo_ml
 uv run mfc dedup
-uv run mfc package   --version 1
+uv run mfc package   --version 1                              # internal corpus (full prose)
+uv run mfc package   --version 1 --tier publishable           # permissioned subset, evidence_text snipped
 
 # Manual labelling (browser UI on 127.0.0.1; terminal Malayalam rendering is unusable):
 uv run mfc label                                           # opens default browser
