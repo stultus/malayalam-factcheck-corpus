@@ -2,7 +2,10 @@
 
 JSON-LD ``ClaimReview`` is the primary path for IFCN sources. When that
 returns ``None``, the per-source CSS selector block from the config takes
-over. The trafilatura readability fallback lands in a later iteration.
+over. Trafilatura's readability extractor is the last-resort fallback for
+pages where neither structured path succeeds; the resulting records carry
+``extractor_used = "readability"``, ``verdict_canonical = "unknown"``,
+and a low confidence score so downstream filters can exclude them.
 """
 
 from __future__ import annotations
@@ -10,6 +13,7 @@ from __future__ import annotations
 from mfc.config import SourceConfig
 from mfc.extract.base import ExtractResult
 from mfc.extract.claimreview import extract_claimreview
+from mfc.extract.readability import extract_readability
 from mfc.extract.selectors import extract_selectors
 
 
@@ -33,4 +37,4 @@ def run_extractors(html: str, url: str, source: SourceConfig) -> ExtractResult |
         if result is not None:
             return result
 
-    return None
+    return extract_readability(html, url)
