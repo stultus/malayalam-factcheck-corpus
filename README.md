@@ -117,6 +117,25 @@ Building a corpus from third-party fact-check articles has copyright, data-prote
 
 If you are a rights holder, publisher, or named individual and want content removed, see [TAKEDOWN.md](TAKEDOWN.md).
 
+## Citation
+
+If you use this corpus or the pipeline in academic work, please cite it. GitHub renders a "Cite this repository" widget from [`CITATION.cff`](CITATION.cff); the BibTeX equivalent is:
+
+```bibtex
+@misc{bhaskaran_malayalam_factcheck_corpus_2026,
+  author       = {Bhaskaran, Hrishikesh},
+  title        = {malayalam-factcheck-corpus},
+  year         = {2026},
+  version      = {1.0},
+  howpublished = {\url{https://github.com/stultus/malayalam-factcheck-corpus}},
+  note         = {Pipeline and labelled corpus of Malayalam fact-check articles}
+}
+```
+
+Pin the `version` field to the corpus version you actually used (`corpus_v{N}.parquet`), not just the repo HEAD — re-runs against newer source state will produce different records.
+
+The records in this corpus are derived from third-party fact-checks. **Please also cite the original publishers** whose work appears in your sample. The `source_id` column on every record maps to the entries in [`configs/malayalam_factcheck_sources.json`](configs/malayalam_factcheck_sources.json), and the `url` column points to the canonical article. IFCN signatories in particular have invested significant editorial effort in the verdicts you are training on.
+
 ## License
 
 [LICENSE](LICENSE) (MIT) covers the **pipeline code only**. Any released corpus is a separate work — see [LEGAL.md](LEGAL.md) for the recommended corpus license posture.

@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+title: malayalam-factcheck-corpus
+message: >-
+  If you use this corpus or pipeline in academic work, please cite it
+  using the metadata below. Please also cite the underlying fact-check
+  publishers whose articles your records are derived from (the
+  source_id field on each record points to the publisher).
+type: dataset
+authors:
+  - given-names: Hrishikesh
+    family-names: Bhaskaran
+    email: hello@stultus.in
+repository-code: "https://github.com/stultus/malayalam-factcheck-corpus"
+url: "https://github.com/stultus/malayalam-factcheck-corpus"
+abstract: >-
+  A reproducible batch pipeline that ingests Malayalam fact-check
+  articles from IFCN-certified Indian portals and produces a
+  versioned, deduplicated Parquet corpus of (claim, verdict, evidence)
+  triples for training claim-verification and misinformation-detection
+  models. Source-attribution and verdict provenance are preserved on
+  every record.
+keywords:
+  - misinformation
+  - fact-checking
+  - claim-verification
+  - malayalam
+  - indian-languages
+  - low-resource-nlp
+  - dataset
+license: MIT
+version: "1.0"
+date-released: "2026-05-01"
