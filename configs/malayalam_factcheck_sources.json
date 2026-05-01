@@ -48,7 +48,7 @@
           "author": ".td-post-author-name a, .author-name"
         }
       },
-      "notes": "Primary Malayalam fact-checker. Strong ClaimReview JSON-LD coverage."
+      "notes": "Primary Malayalam fact-checker. ClaimReview JSON-LD coverage was 0/5 on a 2026-04 RSS pilot — the Yoast SEO graph emits Article/WebPage but no ClaimReview. Selectors fallback is required for this source."
     },
     {
       "id": "newschecker_ml",
