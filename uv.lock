@@ -34,6 +34,18 @@ wheels = [
 ]
 
 [[package]]
+name = "anysqlite"
+version = "0.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0f/4b/cd5d66b9f87e773bc71344a368b9472987e33514e6627e28342b9c3e7c43/anysqlite-0.0.5.tar.gz", hash = "sha256:9dfcf87baf6b93426ad1d9118088c41dbf24ef01b445eea4a5d486bac2755cce", size = 3432, upload-time = "2023-10-02T13:49:25.135Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/31/349eae2bc9d9331dd8951684cf94528d91efaa71129dc30822ac111dfc66/anysqlite-0.0.5-py3-none-any.whl", hash = "sha256:cb345dc4f76f6b37f768d7a0b3e9cf5c700dfcb7a6356af8ab46a11f666edbe7", size = 3907, upload-time = "2023-10-02T13:49:26.943Z" },
+]
+
+[[package]]
 name = "babel"
 version = "2.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -376,6 +388,12 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/87/9e/4d9716959c84546319674a73e8a67db85cc9cd71c97b8ce3dcb1a99183fd/hishel-1.1.10.tar.gz", hash = "sha256:d10172df9e8ceb1f6e7ba0b832a27b1f2db4acc32880a7134e40dec60089de38", size = 54726, upload-time = "2026-04-16T15:14:07.212Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ba/c3/ae0eccc92d877db2a271e7a8347e92d8a06faaad1201d84cd8d572026ca8/hishel-1.1.10-py3-none-any.whl", hash = "sha256:b95be0afeff0e9d1644323ce48d81d914e346db45aec24b69ccfb9df39476fc9", size = 65960, upload-time = "2026-04-16T15:14:05.456Z" },
+]
+
+[package.optional-dependencies]
+async = [
+    { name = "anyio" },
+    { name = "anysqlite" },
 ]
 
 [[package]]
@@ -760,7 +778,7 @@ source = { editable = "." }
 dependencies = [
     { name = "dateparser" },
     { name = "extruct" },
-    { name = "hishel" },
+    { name = "hishel", extra = ["async"] },
     { name = "httpx", extra = ["http2"] },
     { name = "loguru" },
     { name = "polars" },
@@ -786,7 +804,7 @@ dev = [
 requires-dist = [
     { name = "dateparser", specifier = ">=1.2" },
     { name = "extruct", specifier = ">=0.17" },
-    { name = "hishel", specifier = ">=1.0" },
+    { name = "hishel", extras = ["async"], specifier = ">=1.0" },
     { name = "httpx", extras = ["http2"], specifier = ">=0.27" },
     { name = "loguru", specifier = ">=0.7" },
     { name = "polars", specifier = ">=1.7" },

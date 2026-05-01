@@ -18,7 +18,7 @@ dependencies = [
     "loguru>=0.7",
     "tenacity>=9.0",
     "dateparser>=1.2",
-    "hishel>=1.0",
+    "hishel[async]>=1.0",
     "sentence-transformers>=3.0",
 ]
 
