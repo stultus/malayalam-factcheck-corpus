@@ -6,25 +6,23 @@ Given `configs/malayalam_factcheck_sources.json`, the pipeline discovers article
 
 ## Status
 
-Vertical slice is live end-to-end on `factcrescendo_ml`. A 5-URL pilot run goes
-discover → fetch → extract → normalize → package and writes a valid
-`data/processed/corpus_v1.parquet`.
+All six pipeline stages are wired and a full pilot run (`mfc all --pilot`) currently produces `data/processed/corpus_v1.parquet` with 71 records across 5 of the 8 configured sources.
 
 Working:
 
-- `mfc validate-config`, `discover`, `fetch`, `extract`, `normalize`, `package` are wired.
-- ClaimReview JSON-LD is the primary extractor; per-source CSS selectors are the fallback.
+- All stages: `mfc validate-config`, `discover`, `fetch`, `extract`, `normalize`, `dedup`, `package`, plus the `all` orchestrator.
+- Three-tier discovery fallback: RSS → XML sitemap → HTML category page, with optional per-source `article_url_pattern` regex and per-source `user_agent` override (needed where sites 403 our default UA).
+- Three-tier extraction fallback: ClaimReview JSON-LD → per-source CSS selectors → trafilatura readability.
 - Async httpx fetcher with a hishel SQLite HTTP cache, robots.txt registry, tenacity backoff, and per-host concurrency caps.
-- Verdict canonicalisation (longest-alias-wins), Malayalam/Latin/mixed script detection, and `dateparser`-backed UTC date parsing.
+- Verdict canonicalisation (longest-alias-wins), Malayalam/Latin/mixed script detection, `dateparser`-backed UTC dates, and semantic dedup via multilingual sentence embeddings (greedy cosine clustering, threshold 0.85).
 - zstd Parquet output via polars, validated through `FactCheckRecord` on the way in.
-- `ruff`, `ruff format`, and `mypy --strict` pass; CI runs them on every push.
+- `ruff`, `mypy --strict`, and `pytest` (29 tests against committed HTML fixtures) all pass; CI runs them on every push.
 
-Not yet implemented: `dedup` (semantic clustering), `all` orchestration, the
-trafilatura readability fallback, and vcrpy cassettes for offline CI testing.
+Coverage caveats from the pilot run:
 
-Pilot finding: `factcrescendo_ml` currently emits **no** ClaimReview JSON-LD,
-so all 5 records came from the selectors fallback at `extractor_confidence = 0.6`.
-Coverage on the other four IFCN sources has not been measured yet.
+- **ClaimReview JSON-LD adoption is rare in this genre.** Across the IFCN sources we could probe, 0/15 sampled URLs emit a ClaimReview block — the Yoast/SEO graphs publishers ship don't include it. CSS selectors driven by per-source config is the load-bearing extraction path; readability is the safety net for sources whose layout we haven't templated yet.
+- **`newschecker_ml` is currently out of scope.** It's a Next.js SPA that hydrates article lists from streaming RSC payloads; static-HTML discovery returns no article URLs. Needs a headless browser or a publisher API.
+- **`manorama_factcheck`, `mathrubhumi_factcheck`, and `pib_factcheck` produce records but the verdict is buried in prose.** The current pipeline labels these `verdict_canonical = "unknown"` (51 of the 71 pilot records). A Malayalam-language verdict-keyword classifier is the next obvious lift.
 
 ## Sources
 
@@ -56,16 +54,16 @@ uv sync
 uv run mfc --help                                          # list stages
 uv run mfc validate-config                                 # validate the seed JSON
 
-# Single-source pilot, end-to-end:
+# Full pilot across every source (50 URLs each, then dedup + package):
+uv run mfc all --pilot
+
+# Or run a single source one stage at a time:
 uv run mfc discover  --source factcrescendo_ml --limit 5
 uv run mfc fetch     --source factcrescendo_ml
 uv run mfc extract   --source factcrescendo_ml
 uv run mfc normalize --source factcrescendo_ml
-uv run mfc package   --source factcrescendo_ml --version 1
-
-# Not yet implemented:
 uv run mfc dedup
-uv run mfc all --pilot
+uv run mfc package   --version 1
 ```
 
 Stage outputs land under `data/interim/{source_id}/` (`urls.jsonl`,
@@ -91,14 +89,15 @@ src/mfc/
   cli.py                                   # typer entrypoint
   config.py                                # SourcesFile, SourceConfig, ...
   paths.py                                 # data/ layout helpers
-  discovery/  rss.py                       # RSS / Atom feed -> URL list
+  discovery/  rss.py sitemap.py category.py # 3-tier URL discovery fallback
   fetch/      client.py cache.py robots.py # async httpx + hishel + robots
-  extract/    claimreview.py selectors.py pipeline.py
+  extract/    claimreview.py selectors.py readability.py pipeline.py
   normalize/  labels.py script.py dates.py
+  dedup/      semantic.py                  # multilingual sentence-transformer cosine clustering
   corpus/     record.py writer.py          # FactCheckRecord + Parquet writer
   utils/      hashing.py jsonl.py
-scripts/validate_sources.py                # standalone config validator
-tests/fixtures/                            # (planned) vcrpy cassettes
+scripts/                                   # validate_sources.py, sample_pilot.py, measure_claimreview_coverage.py
+tests/                                     # pytest suite + committed HTML fixtures
 data/                                      # gitignored; pipeline outputs
 ```
 
