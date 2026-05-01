@@ -88,8 +88,9 @@
       "ifcn_signatory": true,
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://english.factcrescendo.com/sitemap_index.xml",
-        "category_pages": ["https://english.factcrescendo.com/tag/kerala/"]
+        "sitemap": null,
+        "category_pages": ["https://english.factcrescendo.com/tag/kerala/"],
+        "article_url_pattern": "/\\d{4}/\\d{2}/\\d{2}/"
       },
       "extraction": {
         "claimreview_jsonld": true,
@@ -101,7 +102,7 @@
           "verdict": ".rating-box"
         }
       },
-      "notes": "Supplementary. Use for cross-lingual pairs: same claim, Malayalam and English versions. Useful for translation-robust models."
+      "notes": "Supplementary. Use for cross-lingual pairs: same claim, Malayalam and English versions. Useful for translation-robust models. Uses category-page discovery (the sitewide sitemap returns the tag page itself, not its article children); pattern /YYYY/MM/DD/ matches Fact Crescendo's date-based article slugs."
     },
     {
       "id": "newsmeter_ml",
@@ -162,14 +163,19 @@
       "id": "manorama_factcheck",
       "name": "Manorama Online Fact Check",
       "base_url": "https://www.manoramaonline.com",
-      "malayalam_section": "https://www.manoramaonline.com/topics/technology/factcheck.html",
+      "malayalam_section": "https://www.manoramaonline.com/fact-check.html",
       "language": "ml",
       "ifcn_signatory": false,
       "publisher_org": "Malayala Manorama",
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://www.manoramaonline.com/sitemap.xml",
-        "category_pages": ["https://www.manoramaonline.com/topics/technology/factcheck.html"]
+        "sitemap": null,
+        "category_pages": [
+          "https://www.manoramaonline.com/fact-check/viral.html",
+          "https://www.manoramaonline.com/fact-check/politics.html",
+          "https://www.manoramaonline.com/fact-check/health.html"
+        ],
+        "article_url_pattern": "/fact-check/(viral|politics|health)/\\d{4}/"
       },
       "extraction": {
         "claimreview_jsonld": false,
@@ -181,7 +187,7 @@
           "verdict": null
         }
       },
-      "notes": "Not IFCN-certified. Verdict is usually embedded in prose - requires NLP extraction (e.g., Malayalam verdict keyword classifier). Treat as weakly-labelled source; cross-verify before inclusion in training set."
+      "notes": "Not IFCN-certified. Verdict is usually embedded in prose - requires NLP extraction (e.g., Malayalam verdict keyword classifier). Treat as weakly-labelled source; cross-verify before inclusion in training set. Discovery uses the three /fact-check/{viral,politics,health} sub-sections (the disclosed /topics/technology/factcheck.html page no longer hosts the fact-check vertical); article URLs follow /fact-check/{section}/YYYY/MM/DD/{slug}.html."
     },
     {
       "id": "mathrubhumi_factcheck",
@@ -231,7 +237,7 @@
           "verdict": null
         }
       },
-      "notes": "Government source - useful for claims about government policy/schemes. Multi-language but filterable. Partisan-bias caveat: only government-negative claims get flagged; missing class coverage. Use with label_source='government' flag downstream."
+      "notes": "Government source - useful for claims about government policy/schemes. Multi-language but filterable. Partisan-bias caveat: only government-negative claims get flagged; missing class coverage. Use with label_source='government' flag downstream. CURRENTLY UNREACHABLE: factcheck.aspx returns 302 -> /factcheck.aspx?reg=3&lang=2 -> 401 even with browser User-Agents, suggesting session/cookie or IP-allowlist gating; treat as out-of-scope until a working ingest path is found."
     }
   ],
   "label_ambiguity_notes": [

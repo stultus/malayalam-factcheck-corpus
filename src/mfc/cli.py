@@ -114,6 +114,11 @@ def discover(
 
 
 def _section_prefix(src: SourceConfig) -> str | None:
+    # When article_url_pattern is set it's the precise filter; the broader
+    # path-prefix would only over-constrain (e.g. when a section is split
+    # across several sub-pages whose URLs share no common ancestor).
+    if src.discovery.article_url_pattern is not None:
+        return None
     if src.malayalam_section is not None:
         return str(src.malayalam_section)
     if src.discovery.category_pages:
