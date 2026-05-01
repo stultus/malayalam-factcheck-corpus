@@ -119,7 +119,7 @@ If you are a rights holder, publisher, or named individual and want content remo
 
 ## Citation
 
-If you use this corpus or the pipeline in academic work, please cite it. GitHub renders a "Cite this repository" widget from [`CITATION.cff`](CITATION.cff); the BibTeX equivalent is:
+If this corpus or pipeline is useful in your work, a citation would be appreciated. GitHub renders a "Cite this repository" widget from [`CITATION.cff`](CITATION.cff); the BibTeX equivalent is:
 
 ```bibtex
 @misc{bhaskaran_malayalam_factcheck_corpus_2026,
@@ -132,9 +132,9 @@ If you use this corpus or the pipeline in academic work, please cite it. GitHub 
 }
 ```
 
-Pin the `version` field to the corpus version you actually used (`corpus_v{N}.parquet`), not just the repo HEAD — re-runs against newer source state will produce different records.
+It helps reproducibility if the `version` field reflects the corpus version you actually used (`corpus_v{N}.parquet`) rather than repo HEAD, since re-runs against newer source state produce different records.
 
-The records in this corpus are derived from third-party fact-checks. **Please also cite the original publishers** whose work appears in your sample. The `source_id` column on every record maps to the entries in [`configs/malayalam_factcheck_sources.json`](configs/malayalam_factcheck_sources.json), and the `url` column points to the canonical article. IFCN signatories in particular have invested significant editorial effort in the verdicts you are training on.
+The records here are derived from third-party fact-checks, so a citation to the original publishers alongside this one is also appreciated where it fits. The `source_id` column on every record maps to the entries in [`configs/malayalam_factcheck_sources.json`](configs/malayalam_factcheck_sources.json), and the `url` column points to the canonical article — both should be enough to attribute back to the IFCN signatory or media house that did the underlying reporting.
 
 ## License
 
