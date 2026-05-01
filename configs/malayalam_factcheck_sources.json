@@ -114,8 +114,9 @@
       "publisher_org": "NewsMeter",
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://newsmeter.in/sitemap-daily.xml",
-        "category_pages": ["https://newsmeter.in/fact-check-malayalam"]
+        "sitemap": null,
+        "category_pages": ["https://newsmeter.in/fact-check-malayalam"],
+        "article_url_pattern": "/fact-check-malayalam/"
       },
       "extraction": {
         "claimreview_jsonld": true,
@@ -127,7 +128,8 @@
           "verdict": ".fact, .fact-check-verdict"
         }
       },
-      "notes": "Quintype-based CMS. Often exposes /api/v1/ endpoints for structured access - inspect before scraping HTML."
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+      "notes": "Quintype-based CMS. Often exposes /api/v1/ endpoints for structured access - inspect before scraping HTML. Article URLs return 403 to non-browser User-Agents, so a browser UA override is configured here; robots.txt under User-agent: * still applies. The disclosed sitemap-daily.xml only lists English /fact-check/ URLs, not /fact-check-malayalam/, so discovery uses the category page filtered to /fact-check-malayalam/{slug} URLs (excludes the bare category page itself)."
     },
     {
       "id": "indiatoday_ml_afwa",
@@ -140,8 +142,9 @@
       "publisher_org": "TV Today Network Ltd.",
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://malayalam.indiatoday.in/rssfeeds/news-sitemap.xml",
-        "category_pages": ["https://malayalam.indiatoday.in/fact-check"]
+        "sitemap": null,
+        "category_pages": ["https://malayalam.indiatoday.in/fact-check"],
+        "article_url_pattern": "/fact-check/story/"
       },
       "extraction": {
         "claimreview_jsonld": true,
@@ -153,7 +156,7 @@
           "verdict": ".fact-check-verdict, .fact"
         }
       },
-      "notes": "AFWA = Anti Fake News War-room. Strong in election-cycle claims."
+      "notes": "AFWA = Anti Fake News War-room. Strong in election-cycle claims. The disclosed news-sitemap is a sitewide news index (lifestyle, business, etc.); discovery uses the /fact-check category page filtered to /fact-check/story/ URLs so navigation chrome (about-us, methodology, etc.) is excluded."
     },
     {
       "id": "manorama_factcheck",

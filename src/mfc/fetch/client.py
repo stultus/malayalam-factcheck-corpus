@@ -59,7 +59,7 @@ class FetchClient:
             self._semaphores[host] = sem
         return sem
 
-    async def get(self, url: str) -> httpx.Response:
+    async def get(self, url: str, *, headers: dict[str, str] | None = None) -> httpx.Response:
         if self._policy.respect_robots_txt and not await self._robots.allowed(url):
             raise RobotsDisallowed(url)
 
@@ -73,7 +73,7 @@ class FetchClient:
                 reraise=True,
             ):
                 with attempt:
-                    response = await self._client.get(url)
+                    response = await self._client.get(url, headers=headers)
                     if response.status_code == 429 or response.status_code >= 500:
                         logger.warning(
                             "retryable status; backing off",

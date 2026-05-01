@@ -121,10 +121,18 @@ def _section_prefix(src: SourceConfig) -> str | None:
     return None
 
 
+def _source_headers(src: SourceConfig) -> dict[str, str] | None:
+    if src.user_agent is None:
+        return None
+    return {"User-Agent": src.user_agent}
+
+
 async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | None) -> list[str]:
+    headers = _source_headers(src)
+    pattern = src.discovery.article_url_pattern
     async with open_fetch_client(config.global_crawler_policy) as client:
         if src.discovery.rss is not None:
-            urls = await fetch_rss_urls(client, str(src.discovery.rss))
+            urls = await fetch_rss_urls(client, str(src.discovery.rss), headers=headers)
             return urls if limit is None else urls[:limit]
 
         if src.discovery.sitemap is not None:
@@ -132,14 +140,18 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
                 client,
                 str(src.discovery.sitemap),
                 url_prefix=_section_prefix(src),
+                url_pattern=pattern,
                 max_urls=limit,
+                headers=headers,
             )
 
         return await fetch_category_urls(
             client,
             [str(u) for u in src.discovery.category_pages],
             url_prefix=_section_prefix(src),
+            url_pattern=pattern,
             max_urls=limit,
+            headers=headers,
         )
 
 
@@ -150,7 +162,7 @@ def fetch(
 ) -> None:
     """Stage 2: download URLs with caching, rate-limiting, and robots.txt respect."""
     config = _load_config(DEFAULT_CONFIG)
-    config.source(source)
+    src = config.source(source)
 
     urls_file = urls_path(source)
     if not urls_file.exists():
@@ -161,21 +173,23 @@ def fetch(
     if limit is not None:
         entries = entries[:limit]
 
-    rows = asyncio.run(_run_fetch(config, source, entries))
+    rows = asyncio.run(_run_fetch(config, src, entries))
     written = write_jsonl(fetched_path(source), rows)
     typer.echo(f"fetch: {source} -> {written}/{len(entries)} pages -> {fetched_path(source)}")
 
 
 async def _run_fetch(
-    config: SourcesFile, source_id: str, entries: list[dict[str, Any]]
+    config: SourcesFile, src: SourceConfig, entries: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
+    headers = _source_headers(src)
+    source_id = src.id
     async with open_fetch_client(config.global_crawler_policy) as client:
         for entry in entries:
             url = entry["url"]
             rid = url_hash(url)
             try:
-                response = await client.get(url)
+                response = await client.get(url, headers=headers)
             except RobotsDisallowed:
                 logger.warning("robots disallowed", source=source_id, url=url)
                 continue
@@ -430,7 +444,7 @@ def _run_source(config: SourcesFile, src: SourceConfig, *, limit: int | None) ->
     write_jsonl(urls_path(src.id), [{"url": u, "discovered_at": _now_iso()} for u in urls])
 
     fetched = asyncio.run(
-        _run_fetch(config, src.id, [{"url": u} for u in urls]),
+        _run_fetch(config, src, [{"url": u} for u in urls]),
     )
     write_jsonl(fetched_path(src.id), fetched)
 

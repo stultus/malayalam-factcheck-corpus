@@ -18,6 +18,7 @@ class DiscoveryConfig(BaseModel):
     sitemap: HttpUrl | None = None
     rss: HttpUrl | None = None
     category_pages: list[HttpUrl] = Field(default_factory=list)
+    article_url_pattern: str | None = None
 
 
 class ExtractionConfig(BaseModel):
@@ -41,6 +42,7 @@ class SourceConfig(BaseModel):
     permission_status: PermissionStatus
     discovery: DiscoveryConfig
     extraction: ExtractionConfig
+    user_agent: str | None = None
     notes: str | None = None
 
 

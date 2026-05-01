@@ -9,6 +9,7 @@ can be sampled without crawling unrelated content.
 
 from __future__ import annotations
 
+import re
 from xml.etree import ElementTree as ET
 
 from mfc.fetch.client import FetchClient
@@ -21,11 +22,14 @@ async def fetch_sitemap_urls(
     sitemap_url: str,
     *,
     url_prefix: str | None = None,
+    url_pattern: str | None = None,
     max_urls: int | None = None,
+    headers: dict[str, str] | None = None,
 ) -> list[str]:
     """Return article URLs from a sitemap or sitemap index, optionally filtered."""
     collected: list[str] = []
-    await _walk(client, sitemap_url, url_prefix, max_urls, collected)
+    pattern = re.compile(url_pattern) if url_pattern else None
+    await _walk(client, sitemap_url, url_prefix, pattern, max_urls, headers, collected)
     return collected
 
 
@@ -33,13 +37,15 @@ async def _walk(
     client: FetchClient,
     sitemap_url: str,
     url_prefix: str | None,
+    url_pattern: re.Pattern[str] | None,
     max_urls: int | None,
+    headers: dict[str, str] | None,
     collected: list[str],
 ) -> None:
     if max_urls is not None and len(collected) >= max_urls:
         return
 
-    response = await client.get(sitemap_url)
+    response = await client.get(sitemap_url, headers=headers)
     root = ET.fromstring(response.text)
     tag = root.tag
 
@@ -48,7 +54,7 @@ async def _walk(
             loc = sm.findtext(f"{_SM_NS}loc")
             if not loc:
                 continue
-            await _walk(client, loc.strip(), url_prefix, max_urls, collected)
+            await _walk(client, loc.strip(), url_prefix, url_pattern, max_urls, headers, collected)
             if max_urls is not None and len(collected) >= max_urls:
                 return
         return
@@ -60,6 +66,8 @@ async def _walk(
                 continue
             href = loc.strip()
             if url_prefix is not None and not href.startswith(url_prefix):
+                continue
+            if url_pattern is not None and not url_pattern.search(href):
                 continue
             collected.append(href)
             if max_urls is not None and len(collected) >= max_urls:

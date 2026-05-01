@@ -14,6 +14,7 @@ browser or a site-specific API client.
 
 from __future__ import annotations
 
+import re
 from urllib.parse import urldefrag, urljoin
 
 from selectolax.parser import HTMLParser
@@ -26,18 +27,23 @@ async def fetch_category_urls(
     page_urls: list[str],
     *,
     url_prefix: str | None = None,
+    url_pattern: str | None = None,
     max_urls: int | None = None,
+    headers: dict[str, str] | None = None,
 ) -> list[str]:
     """Return article URLs harvested from one or more category pages."""
     seen: set[str] = set()
     ordered: list[str] = []
+    pattern = re.compile(url_pattern) if url_pattern else None
 
     for page_url in page_urls:
         if max_urls is not None and len(ordered) >= max_urls:
             break
-        response = await client.get(page_url)
+        response = await client.get(page_url, headers=headers)
         for href in _extract_links(response.text, page_url):
             if url_prefix is not None and not href.startswith(url_prefix):
+                continue
+            if pattern is not None and not pattern.search(href):
                 continue
             if href in seen:
                 continue

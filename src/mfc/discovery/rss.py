@@ -15,9 +15,14 @@ from mfc.fetch.client import FetchClient
 _ATOM_NS = "{http://www.w3.org/2005/Atom}"
 
 
-async def fetch_rss_urls(client: FetchClient, feed_url: str) -> list[str]:
+async def fetch_rss_urls(
+    client: FetchClient,
+    feed_url: str,
+    *,
+    headers: dict[str, str] | None = None,
+) -> list[str]:
     """Return article URLs from an RSS or Atom feed."""
-    response = await client.get(feed_url)
+    response = await client.get(feed_url, headers=headers)
     return _parse(response.text)
 
 
