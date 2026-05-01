@@ -31,6 +31,7 @@
       "ifcn_signatory": true,
       "meta_partner": true,
       "publisher_org": "Crescendo Transcription Pvt. Ltd.",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://malayalam.factcrescendo.com/sitemap_index.xml",
         "rss": "https://malayalam.factcrescendo.com/feed/",
@@ -58,6 +59,7 @@
       "ifcn_signatory": true,
       "meta_partner": true,
       "publisher_org": "NC Media Networks Pvt. Ltd.",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://newschecker.in/sitemap.xml",
         "category_pages": [
@@ -84,6 +86,7 @@
       "base_url": "https://english.factcrescendo.com",
       "language": "en",
       "ifcn_signatory": true,
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://english.factcrescendo.com/sitemap_index.xml",
         "category_pages": ["https://english.factcrescendo.com/tag/kerala/"]
@@ -109,6 +112,7 @@
       "ifcn_signatory": true,
       "meta_partner": true,
       "publisher_org": "NewsMeter",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://newsmeter.in/sitemap.xml",
         "category_pages": ["https://newsmeter.in/fact-check-malayalam"]
@@ -134,6 +138,7 @@
       "ifcn_signatory": true,
       "meta_partner": true,
       "publisher_org": "TV Today Network Ltd.",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://malayalam.indiatoday.in/sitemap.xml",
         "category_pages": ["https://malayalam.indiatoday.in/fact-check"]
@@ -158,6 +163,7 @@
       "language": "ml",
       "ifcn_signatory": false,
       "publisher_org": "Malayala Manorama",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://www.manoramaonline.com/sitemap.xml",
         "category_pages": ["https://www.manoramaonline.com/topics/technology/factcheck.html"]
@@ -182,6 +188,7 @@
       "language": "ml",
       "ifcn_signatory": false,
       "publisher_org": "The Mathrubhumi Printing & Publishing Co. Ltd.",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": "https://www.mathrubhumi.com/sitemap.xml",
         "category_pages": ["https://www.mathrubhumi.com/fact-check"]
@@ -206,6 +213,7 @@
       "language": "multi",
       "ifcn_signatory": false,
       "publisher_org": "Press Information Bureau, Government of India",
+      "permission_status": "unasked",
       "discovery": {
         "sitemap": null,
         "category_pages": ["https://pib.gov.in/factcheck.aspx"]

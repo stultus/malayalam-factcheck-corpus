@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 Language = Literal["ml", "en", "multi"]
 ExtractorName = Literal["claimreview_jsonld", "css_selectors", "readability_fallback"]
+PermissionStatus = Literal["unasked", "requested", "granted", "denied"]
 
 
 class DiscoveryConfig(BaseModel):
@@ -37,6 +38,7 @@ class SourceConfig(BaseModel):
     meta_partner: bool | None = None
     publisher_org: str | None = None
     malayalam_section: HttpUrl | None = None
+    permission_status: PermissionStatus
     discovery: DiscoveryConfig
     extraction: ExtractionConfig
     notes: str | None = None
