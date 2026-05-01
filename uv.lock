@@ -367,15 +367,15 @@ wheels = [
 
 [[package]]
 name = "hishel"
-version = "1.1.10"
+version = "1.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "msgpack" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/9e/4d9716959c84546319674a73e8a67db85cc9cd71c97b8ce3dcb1a99183fd/hishel-1.1.10.tar.gz", hash = "sha256:d10172df9e8ceb1f6e7ba0b832a27b1f2db4acc32880a7134e40dec60089de38", size = 54726, upload-time = "2026-04-16T15:14:07.212Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/7a/ef9231da56bc04000f7343831deb1946f5fc270213080fa212f61ddbfe0a/hishel-1.2.1.tar.gz", hash = "sha256:87212cd31a7a6904352ec5bd7119ed3b43d0ab1259d5995751a2a2b173d7c305", size = 814761, upload-time = "2026-04-27T16:16:42.35Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/c3/ae0eccc92d877db2a271e7a8347e92d8a06faaad1201d84cd8d572026ca8/hishel-1.1.10-py3-none-any.whl", hash = "sha256:b95be0afeff0e9d1644323ce48d81d914e346db45aec24b69ccfb9df39476fc9", size = 65960, upload-time = "2026-04-16T15:14:05.456Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/de/5f1bebcf644f2f350c39d2630f391399d0c39ff39fbfff98113889898827/hishel-1.2.1-py3-none-any.whl", hash = "sha256:5e1c1e38f4c970eeef69bc8528e85fd5c02eab15a22f9845d30fc880da32b881", size = 73223, upload-time = "2026-04-27T16:16:40.585Z" },
 ]
 
 [[package]]
@@ -786,7 +786,7 @@ dev = [
 requires-dist = [
     { name = "dateparser", specifier = ">=1.2" },
     { name = "extruct", specifier = ">=0.17" },
-    { name = "hishel", specifier = ">=1.0" },
+    { name = "hishel", specifier = ">=1.2.1" },
     { name = "httpx", extras = ["http2"], specifier = ">=0.27" },
     { name = "loguru", specifier = ">=0.7" },
     { name = "polars", specifier = ">=1.7" },
