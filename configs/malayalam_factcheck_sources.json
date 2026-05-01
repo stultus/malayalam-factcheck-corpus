@@ -190,7 +190,7 @@
       "publisher_org": "The Mathrubhumi Printing & Publishing Co. Ltd.",
       "permission_status": "unasked",
       "discovery": {
-        "sitemap": "https://www.mathrubhumi.com/sitemap.xml",
+        "sitemap": "https://www.mathrubhumi.com/sitemaps/mathrubhumi/sitemap_index.xml",
         "category_pages": ["https://www.mathrubhumi.com/fact-check"]
       },
       "extraction": {

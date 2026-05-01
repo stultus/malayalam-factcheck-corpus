@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from mfc.config import SourceConfig, SourcesFile
 from mfc.corpus.record import FactCheckRecord, LabelSource
 from mfc.corpus.writer import write_parquet
+from mfc.discovery.category import fetch_category_urls
 from mfc.discovery.rss import fetch_rss_urls
 from mfc.discovery.sitemap import fetch_sitemap_urls
 from mfc.extract.base import ExtractResult
@@ -91,11 +92,18 @@ def discover(
     source: Annotated[str, typer.Option("--source", "-s", help="Source id to discover.")],
     limit: Annotated[int | None, typer.Option("--limit", help="Cap URLs for pilot runs.")] = None,
 ) -> None:
-    """Stage 1: list article URLs via RSS, falling back to sitemap."""
+    """Stage 1: list article URLs via RSS, sitemap, or category pages."""
     config = _load_config(DEFAULT_CONFIG)
     src = config.source(source)
-    if src.discovery.rss is None and src.discovery.sitemap is None:
-        typer.echo(f"error: source {source} has no rss or sitemap configured", err=True)
+    if (
+        src.discovery.rss is None
+        and src.discovery.sitemap is None
+        and not src.discovery.category_pages
+    ):
+        typer.echo(
+            f"error: source {source} has no rss, sitemap, or category_pages configured",
+            err=True,
+        )
         raise typer.Exit(code=2)
 
     urls = asyncio.run(_run_discover(config, src, limit))
@@ -119,10 +127,17 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
             urls = await fetch_rss_urls(client, str(src.discovery.rss))
             return urls if limit is None else urls[:limit]
 
-        assert src.discovery.sitemap is not None
-        return await fetch_sitemap_urls(
+        if src.discovery.sitemap is not None:
+            return await fetch_sitemap_urls(
+                client,
+                str(src.discovery.sitemap),
+                url_prefix=_section_prefix(src),
+                max_urls=limit,
+            )
+
+        return await fetch_category_urls(
             client,
-            str(src.discovery.sitemap),
+            [str(u) for u in src.discovery.category_pages],
             url_prefix=_section_prefix(src),
             max_urls=limit,
         )
@@ -400,8 +415,15 @@ def run_all(
 
 
 def _run_source(config: SourcesFile, src: SourceConfig, *, limit: int | None) -> None:
-    if src.discovery.rss is None and src.discovery.sitemap is None:
-        logger.warning("all: skipping source with no rss or sitemap", source_id=src.id)
+    if (
+        src.discovery.rss is None
+        and src.discovery.sitemap is None
+        and not src.discovery.category_pages
+    ):
+        logger.warning(
+            "all: skipping source with no rss, sitemap, or category_pages",
+            source_id=src.id,
+        )
         return
 
     urls = asyncio.run(_run_discover(config, src, limit))
