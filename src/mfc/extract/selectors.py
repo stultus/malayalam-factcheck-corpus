@@ -30,6 +30,7 @@ def extract_selectors(
     selectors: dict[str, str | None],
 ) -> ExtractResult | None:
     tree = HTMLParser(html)
+    _strip_non_content(tree)
 
     claim_text = _select(tree, selectors.get("claim"))
     verdict_raw = _select(tree, selectors.get("verdict"))
@@ -80,6 +81,15 @@ def _node_value(node: Node) -> str:
         content = node.attributes.get("content")
         return content.strip() if content else ""
     return node.text(separator=" ", strip=True)
+
+
+def _strip_non_content(tree: HTMLParser) -> None:
+    # selectolax's Node.text() concatenates descendant text including
+    # <style>/<script>/<noscript> bodies, so inline CSS rules and JS
+    # leak into the visible text. Decompose them up front so every
+    # subsequent _select() returns clean prose.
+    for node in tree.css("script, style, noscript, template"):
+        node.decompose()
 
 
 def _canonical_url(tree: HTMLParser) -> str | None:

@@ -73,6 +73,34 @@ def test_result_line_fallback_ignores_prose_mentions_of_result() -> None:
     assert extract_selectors(html, "https://example.com/r", selectors) is None
 
 
+def test_selectors_strips_inline_style_and_script_from_text() -> None:
+    """selectolax's `Node.text()` concatenates all descendants, which means
+    inline `<style>` rules and `<script>` source leak into evidence_text
+    unless the extractor strips them up front. Fact Crescendo's author-card
+    contains a `<style>` block that triggered exactly this regression."""
+    html = (
+        "<html><body>"
+        "<div class='post'>"
+        "<p>Real article prose lives here.</p>"
+        "<style>.fc-author-card { color: red; padding: 24px; }</style>"
+        "<script>window.foo = function(){};</script>"
+        "<span class='claim'>The viral claim</span>"
+        "<span class='verdict'>False</span>"
+        "</div>"
+        "</body></html>"
+    )
+    selectors: dict[str, str | None] = {
+        "claim": ".claim",
+        "verdict": ".verdict",
+        "content": ".post",
+    }
+    result = extract_selectors(html, "https://example.com/x", selectors)
+    assert result is not None
+    assert "color: red" not in result.evidence_text
+    assert "window.foo" not in result.evidence_text
+    assert "Real article prose" in result.evidence_text
+
+
 def test_selectors_reads_meta_content_attribute() -> None:
     html = (
         "<html><head>"
