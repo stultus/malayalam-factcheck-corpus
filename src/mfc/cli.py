@@ -373,10 +373,13 @@ def _to_record(
 def dedup(
     threshold: Annotated[
         float, typer.Option("--threshold", help="Cosine similarity threshold.")
-    ] = 0.85,
+    ] = -1.0,
 ) -> None:
     """Stage 5: cluster claims across sources, mark duplicates of the earliest."""
-    from mfc.dedup.semantic import assign_duplicates
+    from mfc.dedup.semantic import DEFAULT_THRESHOLD, assign_duplicates
+
+    if threshold < 0:
+        threshold = DEFAULT_THRESHOLD
 
     config = _load_config(DEFAULT_CONFIG)
     records: list[FactCheckRecord] = []
