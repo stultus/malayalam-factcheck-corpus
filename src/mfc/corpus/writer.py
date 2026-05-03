@@ -21,7 +21,11 @@ def write_parquet(records: Iterable[FactCheckRecord], path: Path) -> int:
     """Write ``records`` to ``path`` as Parquet with zstd compression. Returns row count."""
     rows: list[dict[str, Any]] = [_to_row(r) for r in records]
     ensure_dir(path.parent)
-    frame = pl.DataFrame(rows) if rows else pl.DataFrame(schema=_empty_schema())
+    # Pass the schema explicitly so polars does not infer Utf8 columns as Null
+    # when the first ~100 rows happen to be all-None (e.g. `duplicate_of` and
+    # `claim_embedding_hash` are sparse in small corpora).
+    schema = _empty_schema()
+    frame = pl.DataFrame(rows, schema=schema) if rows else pl.DataFrame(schema=schema)
     frame.write_parquet(path, compression="zstd")
     return frame.height
 
