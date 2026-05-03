@@ -74,3 +74,19 @@ def test_factcrescendo_ml_extracts_via_selectors_not_readability() -> None:
         )
         assert result.claim_text
         assert result.verdict_raw
+
+
+def test_factcrescendo_en_recovers_verdict_via_result_line_fallback() -> None:
+    """FC English has no `.rating-box` element; the verdict lives in a
+    `Result: <label>` paragraph at the end of the body. The selectors
+    extractor's Result-line fallback should recover it for every fixture."""
+    src = _source("factcrescendo_en_malayalam_tag")
+    for stem, html in _load_html_fixtures("factcrescendo_en_malayalam_tag"):
+        result = run_extractors(html, f"https://example.com/{stem}", src)
+        assert result is not None
+        assert result.extractor_used == "css_selectors", (
+            f"{stem}: fell through to {result.extractor_used} — "
+            f"either claim or verdict selector regressed"
+        )
+        assert result.verdict_raw, f"{stem}: empty verdict"
+        assert result.verdict_raw.lower() in {"false", "misleading", "partly false", "true"}

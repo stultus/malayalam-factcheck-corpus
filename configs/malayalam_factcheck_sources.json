@@ -96,13 +96,13 @@
         "claimreview_jsonld": true,
         "selectors": {
           "title": "h1.entry-title",
-          "content": "div.td-post-content",
+          "content": "article .entry-content, div.td-post-content",
           "published_date": "time.entry-date",
-          "claim": ".claim-box",
+          "claim": ".entry-content blockquote, .claim-box",
           "verdict": ".rating-box"
         }
       },
-      "notes": "Supplementary. Use for cross-lingual pairs: same claim, Malayalam and English versions. Useful for translation-robust models. Uses category-page discovery (the sitewide sitemap returns the tag page itself, not its article children); pattern /YYYY/MM/DD/ matches Fact Crescendo's date-based article slugs."
+      "notes": "Supplementary. Use for cross-lingual pairs: same claim, Malayalam and English versions. Useful for translation-robust models. Uses category-page discovery (the sitewide sitemap returns the tag page itself, not its article children); pattern /YYYY/MM/DD/ matches Fact Crescendo's date-based article slugs. Claim is in a body blockquote (no .claim-box class on this property); verdict has no dedicated selector but appears as a `Result: <label>` summary paragraph that the selectors extractor's Result-line fallback picks up. Body container is article .entry-content (the Malayalam property's div.td-post-content is kept as fallback for the legacy FC theme)."
     },
     {
       "id": "newsmeter_ml",
