@@ -4,7 +4,7 @@ const state = {
   records: [],
   filtered: [],
   index: 0,
-  filter: { source: "", status: "unknown", script: "" },
+  filter: { source: "", status: "unknown", script: "", verdict: "" },
 };
 
 const els = {
@@ -14,6 +14,7 @@ const els = {
   filterSource: document.getElementById("filter-source"),
   filterStatus: document.getElementById("filter-status"),
   filterScript: document.getElementById("filter-script"),
+  filterVerdict: document.getElementById("filter-verdict"),
   reload: document.getElementById("btn-reload"),
   verdicts: document.getElementById("verdicts"),
   notesRow: document.getElementById("notes-row"),
@@ -41,13 +42,16 @@ async function fetchRecords() {
 }
 
 function applyFilters() {
-  const { source, status, script } = state.filter;
+  const { source, status, script, verdict } = state.filter;
   state.filtered = state.records.filter((r) => {
     if (source && r.source_id !== source) return false;
     if (script && r.claim_text_script !== script) return false;
     if (status === "unlabelled" && r.manual_label) return false;
     if (status === "labelled" && !r.manual_label) return false;
     if (status === "unknown" && r.verdict_canonical !== "unknown") return false;
+    if (verdict) {
+      if (!r.manual_label || r.manual_label.verdict !== verdict) return false;
+    }
     return true;
   });
   if (state.index >= state.filtered.length) state.index = 0;
@@ -214,6 +218,12 @@ function bind() {
   });
   els.filterScript.addEventListener("change", () => {
     state.filter.script = els.filterScript.value;
+    state.index = 0;
+    applyFilters();
+    render();
+  });
+  els.filterVerdict.addEventListener("change", () => {
+    state.filter.verdict = els.filterVerdict.value;
     state.index = 0;
     applyFilters();
     render();
