@@ -6,13 +6,22 @@ Each selector entry is a comma-separated CSS list and the first match
 wins. ``meta`` selectors read the ``content`` attribute; everything else
 reads visible text. Returns ``None`` if either ``claim`` or ``verdict``
 cannot be located, since both are mandatory for a usable record.
+
+If the configured ``verdict`` selector misses, falls back to scanning
+body paragraphs for a ``Result: <verdict>`` summary line. This is the
+convention used by Fact Crescendo English (and similar layouts) to mark
+the verdict at the end of the article without a dedicated CSS class.
 """
 
 from __future__ import annotations
 
+import re
+
 from selectolax.parser import HTMLParser, Node
 
 from mfc.extract.base import ExtractResult
+
+_RESULT_LINE = re.compile(r"^\s*Result\s*:\s*(.+?)\s*$", re.IGNORECASE)
 
 
 def extract_selectors(
@@ -24,6 +33,8 @@ def extract_selectors(
 
     claim_text = _select(tree, selectors.get("claim"))
     verdict_raw = _select(tree, selectors.get("verdict"))
+    if not verdict_raw:
+        verdict_raw = _result_line_fallback(tree, selectors.get("content"))
     if not claim_text or not verdict_raw:
         return None
 
@@ -77,3 +88,24 @@ def _canonical_url(tree: HTMLParser) -> str | None:
         return None
     href = node.attributes.get("href")
     return href.strip() if href else None
+
+
+def _result_line_fallback(tree: HTMLParser, content_selector: str | None) -> str:
+    container: Node | None = None
+    if content_selector:
+        for raw in content_selector.split(","):
+            css = raw.strip()
+            if not css:
+                continue
+            container = tree.css_first(css)
+            if container is not None:
+                break
+    if container is None:
+        container = tree.body
+    if container is None:
+        return ""
+    for p in container.css("p"):
+        match = _RESULT_LINE.match(p.text(separator=" ", strip=True))
+        if match:
+            return match.group(1).strip()
+    return ""
