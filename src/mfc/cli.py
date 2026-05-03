@@ -109,9 +109,22 @@ def discover(
 
     urls = asyncio.run(_run_discover(config, src, limit))
 
-    rows = [{"url": u, "discovered_at": _now_iso()} for u in urls]
+    # Sitemap indices and category pagination both re-list the same URL
+    # across sub-pages; collapse here so every downstream stage sees one
+    # row per article. Preserve discovery order: first occurrence wins.
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for u in urls:
+        if u in seen:
+            continue
+        seen.add(u)
+        deduped.append(u)
+    dropped = len(urls) - len(deduped)
+
+    rows = [{"url": u, "discovered_at": _now_iso()} for u in deduped]
     written = write_jsonl(urls_path(source), rows)
-    typer.echo(f"discover: {source} -> {written} urls -> {urls_path(source)}")
+    suffix = f" ({dropped} duplicate URLs collapsed)" if dropped else ""
+    typer.echo(f"discover: {source} -> {written} urls{suffix} -> {urls_path(source)}")
 
 
 def _section_prefix(src: SourceConfig) -> str | None:
@@ -431,6 +444,19 @@ def package(
             for row in read_jsonl(path):
                 all_records.append(FactCheckRecord.model_validate(row))
 
+    # Defensive: collapse any record_id duplicates that slipped through
+    # discovery (sitemap indices sometimes re-list the same article across
+    # sub-sitemaps). First occurrence wins.
+    seen_ids: set[str] = set()
+    deduped_records: list[FactCheckRecord] = []
+    for r in all_records:
+        if r.record_id in seen_ids:
+            continue
+        seen_ids.add(r.record_id)
+        deduped_records.append(r)
+    record_id_dupes = len(all_records) - len(deduped_records)
+    all_records = deduped_records
+
     manual_labels = LabelStore().all()
     all_records, merge_summary = apply_labels(all_records, manual_labels)
     overridden = merge_summary.overridden
@@ -462,6 +488,8 @@ def package(
         extras.append(f"{overridden} manual overrides")
     if rejected:
         extras.append(f"{rejected} dropped as not_fact_check")
+    if record_id_dupes:
+        extras.append(f"{record_id_dupes} record_id duplicates collapsed")
     suffix = f" ({'; '.join(extras)})" if extras else ""
     typer.echo(f"package: {written} rows -> {out}{suffix}")
 
