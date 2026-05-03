@@ -12,10 +12,13 @@
         <strong>malayalam-factcheck-corpus</strong>
         <span class="muted">manual labeller</span>
       </div>
-      <div class="progress">
-        <span id="position">0 / 0</span>
-        <span class="muted">·</span>
-        <span id="labelled-count">0 labelled</span>
+      <div class="header-right">
+        <div id="distribution" class="distribution" aria-label="verdict distribution"></div>
+        <div class="progress">
+          <span id="position">0 / 0</span>
+          <span class="muted">·</span>
+          <span id="labelled-count">0 labelled</span>
+        </div>
       </div>
     </header>
 
@@ -28,9 +31,9 @@
         Show
         <select id="filter-status">
           <option value="all">all</option>
-          <option value="unlabelled">unlabelled only</option>
+          <option value="unlabelled" selected>unlabelled only</option>
           <option value="labelled">labelled only</option>
-          <option value="unknown" selected>auto-verdict = unknown</option>
+          <option value="unknown">auto-verdict = unknown</option>
         </select>
       </label>
       <label>
@@ -65,32 +68,41 @@
     </main>
 
     <section class="verdicts" id="verdicts" hidden>
-      <button data-verdict="false" class="v-false">
-        false <kbd>1</kbd>
+      <button data-verdict="false" data-letter="f" class="v-false">
+        <span class="vname">false</span>
+        <span class="vkeys"><kbd>f</kbd><kbd>1</kbd></span>
       </button>
-      <button data-verdict="misleading" class="v-misleading">
-        misleading <kbd>2</kbd>
+      <button data-verdict="misleading" data-letter="m" class="v-misleading">
+        <span class="vname">misleading</span>
+        <span class="vkeys"><kbd>m</kbd><kbd>2</kbd></span>
       </button>
-      <button data-verdict="partly_false" class="v-partly">
-        partly_false <kbd>3</kbd>
+      <button data-verdict="partly_false" data-letter="p" class="v-partly">
+        <span class="vname">partly_false</span>
+        <span class="vkeys"><kbd>p</kbd><kbd>3</kbd></span>
       </button>
-      <button data-verdict="true" class="v-true">
-        true <kbd>4</kbd>
+      <button data-verdict="true" data-letter="t" class="v-true">
+        <span class="vname">true</span>
+        <span class="vkeys"><kbd>t</kbd><kbd>4</kbd></span>
       </button>
-      <button data-verdict="unverified" class="v-unverified">
-        unverified <kbd>5</kbd>
+      <button data-verdict="unverified" data-letter="v" class="v-unverified">
+        <span class="vname">unverified</span>
+        <span class="vkeys"><kbd>v</kbd><kbd>5</kbd></span>
       </button>
-      <button data-verdict="satire" class="v-satire">
-        satire <kbd>6</kbd>
+      <button data-verdict="satire" data-letter="s" class="v-satire">
+        <span class="vname">satire</span>
+        <span class="vkeys"><kbd>s</kbd><kbd>6</kbd></span>
       </button>
-      <button data-verdict="needs_review" class="v-review">
-        needs_review <kbd>7</kbd>
+      <button data-verdict="needs_review" data-letter="r" class="v-review">
+        <span class="vname">needs_review</span>
+        <span class="vkeys"><kbd>r</kbd><kbd>7</kbd></span>
       </button>
-      <button data-verdict="not_fact_check" class="v-not-fc">
-        not_fact_check <kbd>8</kbd>
+      <button data-verdict="not_fact_check" data-letter="x" class="v-not-fc">
+        <span class="vname">not_fact_check</span>
+        <span class="vkeys"><kbd>x</kbd><kbd>8</kbd></span>
       </button>
       <button data-verdict="__delete__" class="v-clear">
-        clear <kbd>0</kbd>
+        <span class="vname">clear</span>
+        <span class="vkeys"><kbd>0</kbd></span>
       </button>
     </section>
 
@@ -103,11 +115,12 @@
     </section>
 
     <footer class="hints" id="hints" hidden>
+      <span><kbd>↵</kbd> accept suggested</span>
       <span><kbd>←</kbd> / <kbd>→</kbd> navigate</span>
-      <span><kbd>1</kbd>–<kbd>8</kbd> verdict</span>
-      <span><kbd>0</kbd> clear</span>
       <span><kbd>n</kbd> next unlabelled</span>
+      <span><kbd>u</kbd> undo last</span>
       <span><kbd>o</kbd> open article</span>
+      <span><kbd>e</kbd> expand evidence</span>
     </footer>
 
     <script src="/static/app.js"></script>
