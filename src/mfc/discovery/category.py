@@ -90,9 +90,7 @@ async def fetch_category_urls(
 
 def _with_query_param(url: str, key: str, value: int) -> str:
     parsed = urlparse(url)
-    existing = [
-        kv for kv in parsed.query.split("&") if kv and not kv.startswith(f"{key}=")
-    ]
+    existing = [kv for kv in parsed.query.split("&") if kv and not kv.startswith(f"{key}=")]
     existing.append(f"{key}={value}")
     return urlunparse(parsed._replace(query="&".join(existing)))
 
