@@ -127,7 +127,7 @@ def discover(
     typer.echo(f"discover: {source} -> {written} urls{suffix} -> {urls_path(source)}")
 
 
-def _section_prefix(src: SourceConfig) -> str | None:
+def _section_prefix(src: SourceConfig, *, for_category_discovery: bool = False) -> str | None:
     # When article_url_pattern is set it's the precise filter; the broader
     # path-prefix would only over-constrain (e.g. when a section is split
     # across several sub-pages whose URLs share no common ancestor).
@@ -135,7 +135,12 @@ def _section_prefix(src: SourceConfig) -> str | None:
         return None
     if src.malayalam_section is not None:
         return str(src.malayalam_section)
-    if src.discovery.category_pages:
+    # category_pages[0] is the URL we *crawl* — its path prefix only
+    # filters article hrefs sensibly when category discovery is the active
+    # path. WordPress sitemaps emit date-slug permalinks (`/YYYY/MM/slug/`)
+    # that share no prefix with `/category/fact-check/`, so applying the
+    # category prefix to a sitemap walk drops nearly every URL.
+    if for_category_discovery and src.discovery.category_pages:
         return str(src.discovery.category_pages[0])
     return None
 
@@ -150,10 +155,11 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
     headers = _source_headers(src)
     pattern = src.discovery.article_url_pattern
     async with open_fetch_client(config.global_crawler_policy) as client:
-        if src.discovery.rss is not None:
-            urls = await fetch_rss_urls(client, str(src.discovery.rss), headers=headers)
-            return urls if limit is None else urls[:limit]
-
+        # Sitemap is preferred over RSS when both are configured: WordPress
+        # /feed/ caps at the 10 most recent posts, while sitemap_index.xml
+        # walks the full archive (factcrescendo_ml: 10 via RSS vs 4,500+
+        # via sitemap). RSS still wins as a fallback for sites that don't
+        # publish a sitemap.
         if src.discovery.sitemap is not None:
             return await fetch_sitemap_urls(
                 client,
@@ -163,6 +169,10 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
                 max_urls=limit,
                 headers=headers,
             )
+
+        if src.discovery.rss is not None:
+            urls = await fetch_rss_urls(client, str(src.discovery.rss), headers=headers)
+            return urls if limit is None else urls[:limit]
 
         pagination = (
             PaginationSpec(
@@ -177,7 +187,7 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
         return await fetch_category_urls(
             client,
             [str(u) for u in src.discovery.category_pages],
-            url_prefix=_section_prefix(src),
+            url_prefix=_section_prefix(src, for_category_discovery=True),
             url_pattern=pattern,
             max_urls=limit,
             headers=headers,
