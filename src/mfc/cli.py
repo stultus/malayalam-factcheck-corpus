@@ -599,11 +599,16 @@ def label_export(
 @app.command("all")
 def run_all(
     pilot: Annotated[bool, typer.Option("--pilot", help="Cap to 50 URLs per source.")] = False,
+    limit: Annotated[
+        int | None,
+        typer.Option("--limit", help="Cap URLs per source (overrides --pilot)."),
+    ] = None,
     version: Annotated[int, typer.Option("--version", "-v")] = 1,
 ) -> None:
     """Run every stage end-to-end across every configured source."""
     config = _load_config(DEFAULT_CONFIG)
-    limit = 50 if pilot else None
+    if limit is None and pilot:
+        limit = 50
 
     for src in config.sources:
         try:
@@ -628,10 +633,20 @@ def _run_source(config: SourcesFile, src: SourceConfig, *, limit: int | None) ->
         return
 
     urls = asyncio.run(_run_discover(config, src, limit))
-    write_jsonl(urls_path(src.id), [{"url": u, "discovered_at": _now_iso()} for u in urls])
+    seen: set[str] = set()
+    deduped_urls: list[str] = []
+    for u in urls:
+        if u in seen:
+            continue
+        seen.add(u)
+        deduped_urls.append(u)
+    write_jsonl(
+        urls_path(src.id),
+        [{"url": u, "discovered_at": _now_iso()} for u in deduped_urls],
+    )
 
     fetched = asyncio.run(
-        _run_fetch(config, src, [{"url": u} for u in urls]),
+        _run_fetch(config, src, [{"url": u} for u in deduped_urls]),
     )
     write_jsonl(fetched_path(src.id), fetched)
 
