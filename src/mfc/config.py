@@ -12,12 +12,29 @@ ExtractorName = Literal["claimreview_jsonld", "css_selectors", "readability_fall
 PermissionStatus = Literal["unasked", "requested", "granted", "denied"]
 
 
+class CategoryPaginationConfig(BaseModel):
+    """Walk numbered pages of a category index (e.g. ``?page=2``).
+
+    ``query_param`` adds ``?<param>=N`` for N in [start, start+step, …]. The
+    walk stops on the first page that adds no new article URLs (so we don't
+    need a hard upper bound), with ``max_pages`` as a defensive cap.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    query_param: str
+    start: int = 2
+    step: int = 1
+    max_pages: int = Field(default=50, ge=1)
+
+
 class DiscoveryConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sitemap: HttpUrl | None = None
     rss: HttpUrl | None = None
     category_pages: list[HttpUrl] = Field(default_factory=list)
+    category_pagination: CategoryPaginationConfig | None = None
     article_url_pattern: str | None = None
 
 

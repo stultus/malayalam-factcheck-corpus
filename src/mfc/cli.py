@@ -15,7 +15,7 @@ from mfc.config import SourceConfig, SourcesFile
 from mfc.corpus.publish import DEFAULT_SNIPPET_CHARS, prepare_publishable
 from mfc.corpus.record import FactCheckRecord, LabelSource
 from mfc.corpus.writer import write_parquet
-from mfc.discovery.category import fetch_category_urls
+from mfc.discovery.category import PaginationSpec, fetch_category_urls
 from mfc.discovery.rss import fetch_rss_urls
 from mfc.discovery.sitemap import fetch_sitemap_urls
 from mfc.extract.base import ExtractResult
@@ -164,6 +164,16 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
                 headers=headers,
             )
 
+        pagination = (
+            PaginationSpec(
+                query_param=src.discovery.category_pagination.query_param,
+                start=src.discovery.category_pagination.start,
+                step=src.discovery.category_pagination.step,
+                max_pages=src.discovery.category_pagination.max_pages,
+            )
+            if src.discovery.category_pagination is not None
+            else None
+        )
         return await fetch_category_urls(
             client,
             [str(u) for u in src.discovery.category_pages],
@@ -171,6 +181,7 @@ async def _run_discover(config: SourcesFile, src: SourceConfig, limit: int | Non
             url_pattern=pattern,
             max_urls=limit,
             headers=headers,
+            pagination=pagination,
         )
 
 

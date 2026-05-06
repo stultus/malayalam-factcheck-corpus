@@ -175,6 +175,12 @@
           "https://www.manoramaonline.com/fact-check/politics.html",
           "https://www.manoramaonline.com/fact-check/health.html"
         ],
+        "category_pagination": {
+          "query_param": "page",
+          "start": 2,
+          "step": 1,
+          "max_pages": 50
+        },
         "article_url_pattern": "/fact-check/(viral|politics|health)/\\d{4}/"
       },
       "extraction": {
